@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson Reviewer</title>
+<style>
+  :root{
+    --paper:#EEF1F5; --paper-light:#FFFFFF; --paper-dark:#E3E8EE;
+    --ink:#141414; --ink-soft:#3A3A3A; --ink-faint:#5C5C5C;
+    --rule:#AFB6BE; --rule-strong:#3D4652;
+    --blue:#002060; --red:#E81123; --green:#00B050;
+    --radius:18px; --radius-sm:12px; --radius-pill:999px;
+    --border:3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--paper-dark); color:var(--ink);
+    font-family:ui-rounded,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15.5px; line-height:1.55;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:26px 18px 60px; min-height:100vh; }
+  .brand{ text-align:center; margin-bottom:22px; }
+  .brand h1{ font-family:ui-rounded,-apple-system,BlinkMacSystemFont,sans-serif; font-size:25px; font-weight:800; margin:0; color:var(--ink); }
+  .brand small{
+    display:block; font-size:12px; font-weight:600; letter-spacing:0.3px; color:var(--ink-faint); margin-top:5px;
+  }
+  .org-header{ margin-bottom:12px; padding-bottom:12px; }
+  .org-logo{ display:block; margin:0 auto 8px; max-height:76px; }
+  .org-header .org-name{ font-size:12px; font-weight:800; letter-spacing:0.3px; color:var(--ink-soft); }
+  .org-header .org-address{ font-size:11.5px; color:var(--ink-faint); margin-top:2px; }
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+  .card{
+    background:var(--paper-light); border:var(--border) solid var(--rule-strong); border-radius:var(--radius);
+    padding:22px 24px; margin-bottom:16px; box-shadow:0 3px 10px rgba(20,20,20,0.12);
+  }
+  .field{ display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+  .field label{
+    font-size:12px; font-weight:700; letter-spacing:0.3px; color:var(--ink-soft);
+  }
+  input, select, textarea{
+    font-family:inherit; font-size:15.5px; padding:11px 14px;
+    border:var(--border) solid var(--rule-strong); border-radius:var(--radius-sm); background:#fff; color:var(--ink); width:100%;
+  }
+  input:focus, select:focus, textarea:focus{ outline:3px solid var(--blue); outline-offset:1px; }
+  button{
+    font-family:inherit; font-size:13.5px; font-weight:700;
+    letter-spacing:0.2px; cursor:pointer; border-radius:var(--radius-pill);
+    padding:12px 22px; border:none; background:var(--blue); color:#FFFFFF;
+    box-shadow:0 3px 0 #00123A;
+  }
+  button:hover{ filter:brightness(1.15); }
+  button:active{ transform:translateY(2px); box-shadow:0 1px 0 #00123A; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; box-shadow:none; }
+  button.ghost{ background:transparent; color:var(--ink); border:var(--border) solid var(--rule-strong); box-shadow:none; }
+  button.ghost:hover{ background:var(--paper-dark); filter:none; }
+  button.ghost:active{ transform:none; }
+  button.block{ width:100%; padding:14px; font-size:14.5px; }
+  .row{ display:flex; gap:10px; }
+
+  .lesson-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:480px){ .lesson-grid{ grid-template-columns:1fr; } }
+  .lesson-card{
+    background:var(--paper-light); border:var(--border) solid var(--rule-strong); border-radius:var(--radius);
+    padding:16px 18px; text-align:left; cursor:pointer; box-shadow:0 3px 10px rgba(20,20,20,0.10);
+  }
+  .lesson-card:hover{ border-color:var(--blue); transform:translateY(-1px); }
+  .lesson-card .num{
+    font-size:11px; font-weight:800; color:var(--blue); letter-spacing:0.4px;
+  }
+  .lesson-card h4{ margin:5px 0 4px; font-size:15.5px; font-weight:700; }
+  .lesson-card p{ margin:0; font-size:12.5px; color:var(--ink-faint); }
+  .tag{
+    display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:0.3px;
+    padding:3px 10px; border-radius:var(--radius-pill); background:var(--paper-dark);
+    color:var(--ink-soft); margin-top:8px;
+  }
+
+  .progress-track{ height:10px; background:var(--paper-dark); border:1.5px solid var(--rule-strong); border-radius:var(--radius-pill); overflow:hidden; margin-bottom:18px; }
+  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--blue),#1E4FA3); border-radius:var(--radius-pill); transition:width 0.25s ease; }
+  .q-count{
+    font-size:12px; font-weight:700; letter-spacing:0.3px; color:var(--ink-faint); margin-bottom:8px;
+  }
+  .q-prompt{ font-size:18px; font-weight:700; margin-bottom:16px; }
+  .option{
+    display:block; width:100%; text-align:left; background:#fff; border:var(--border) solid var(--rule-strong);
+    border-radius:var(--radius-sm); padding:13px 16px; margin-bottom:10px; cursor:pointer; font-size:15px; color:var(--ink);
+  }
+  .option:hover{ border-color:var(--blue); }
+  .option.selected{ border-color:var(--green); background:#E7F7EC; font-weight:700; }
+
+  .stamp-banner{
+    text-align:center; padding:26px 18px; border-radius:var(--radius); margin-bottom:18px;
+    background:var(--paper-light); border:var(--border) solid var(--rule-strong);
+  }
+  .stamp-banner.pass{ background:#E7F7EC; border-color:var(--green); }
+  .stamp-banner.mid{ background:#E7ECF7; border-color:var(--blue); }
+  .stamp-banner.low{ background:#FBE8EA; border-color:var(--red); }
+  .stamp-banner .emoji{ font-size:32px; line-height:1; margin-bottom:4px; }
+  .stamp-banner .pct{ font-size:42px; font-weight:800; line-height:1; }
+  .stamp-banner .verdict{
+    font-size:14px; letter-spacing:0.2px;
+    margin-top:8px; font-weight:700;
+  }
+  .result-student{
+    font-size:15px; font-weight:800; color:var(--ink); margin-bottom:2px;
+  }
+  .result-student .cls{ font-weight:600; color:var(--ink-soft); font-size:13px; }
+  .result-lesson{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; font-weight:600; }
+  .result-date{ font-size:11px; color:var(--ink-faint); margin-top:3px; }
+  .history-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-bottom:2px solid var(--rule); }
+  .history-row:last-child{ border-bottom:none; }
+  .history-row.latest{ background:#E7ECF7; margin:0 -8px; padding:9px 8px; border-radius:10px; border-bottom:none; }
+  .history-date{ font-size:12px; color:var(--ink-soft); }
+  .history-date .latest-tag{ font-size:10.5px; font-weight:800; color:var(--blue); margin-left:6px; }
+  .history-score{ font-size:13px; font-weight:700; white-space:nowrap; }
+  .history-score.pass{ color:var(--green); } .history-score.mid{ color:var(--blue); } .history-score.low{ color:var(--red); }
+  .lesson-card .attempts-tag{ font-size:11px; color:var(--ink-soft); margin-top:4px; display:block; }
+  .content-block{ margin-bottom:18px; }
+  .content-block:last-child{ margin-bottom:0; }
+  .content-label{ font-size:12px; font-weight:800; color:var(--ink-soft); letter-spacing:0.2px; margin-bottom:8px; text-transform:uppercase; }
+
+  .content-section{ border-radius:var(--radius); padding:18px 20px; margin-bottom:16px; }
+  .intro-blurb{
+    background:#FFF9EF; border:2.5px dashed #B4871C; border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:16px;
+  }
+  .intro-blurb-title{ font-size:13.5px; font-weight:800; color:#B4791C; margin-bottom:8px; }
+  .intro-blurb-row{ font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin-bottom:3px; }
+  .intro-blurb-row:last-child{ margin-bottom:0; }
+  .content-section-label{ font-size:15px; font-weight:800; margin-bottom:10px; }
+  .content-section-intro{ background:#EAF1F8; border:2.5px solid #5B8AC0; }
+  .content-section-intro .content-section-label{ color:#1F4A7A; }
+  .content-section-prior{ background:#F1EDF8; border:2.5px solid #9D7FC4; }
+  .content-section-prior .content-section-label{ color:#4A2E7E; }
+  .content-section-objectives{ background:#EAF4F0; border:2.5px solid #4F9A7E; }
+  .content-section-objectives .content-section-label{ color:#1F4F3E; }
+  .content-section-terms{ background:#FFF6E4; border:2.5px solid #C99A3E; }
+  .content-section-terms .content-section-label{ color:#8A5A0C; font-size:18px; }
+  .content-section-minilesson{ background:#E9F5F5; border:2.5px solid #4A9A9A; }
+  .content-section-minilesson .content-section-label{ color:#13575A; }
+  .content-section-guided{ background:#FDF0E4; border:2.5px solid #C77E3A; }
+  .content-section-guided .content-section-label{ color:#8A440C; }
+  .content-section-reading{ background:#FAF7F0; border:2.5px solid #A8936A; }
+  .content-section-reading .content-section-label{ color:#4A3D20; }
+  .content-section-apply{ background:#FBEEF0; border:2.5px solid #C96E88; }
+  .content-section-apply .content-section-label{ color:#8A1E3C; }
+  .content-section-summary{ background:#F0F0F0; border:2.5px solid #8A8A8A; }
+  .content-section-summary .content-section-label{ color:#2A2A2A; }
+  .mini-lesson-para{ margin-bottom:10px; font-size:14px; line-height:1.6; }
+  .mini-lesson-para:last-child{ margin-bottom:0; }
+  .guided-block{ background:#fff; border:2px solid var(--rule); border-left:6px solid #C77E3A; border-radius:8px; padding:12px 16px; margin-bottom:10px; }
+  .guided-block:last-child{ margin-bottom:0; }
+  .guided-block .guided-title{ font-weight:800; font-size:14px; margin-bottom:6px; }
+  .guided-block .guided-label{ font-size:11px; font-weight:700; text-transform:uppercase; color:#9A7A5A; margin-top:8px; }
+  .guided-block .guided-text{ font-size:13.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .reading-passage{ background:#fff; border:2.5px solid #A8936A; border-radius:8px; padding:16px 18px; font-size:14px; line-height:1.7; font-style:italic; color:var(--ink); }
+  .reading-passage-title{ font-weight:800; font-style:normal; margin-bottom:8px; font-size:14.5px; }
+  .prior-question{ font-size:14px; margin-bottom:8px; padding-left:4px; }
+  .prior-question:last-child{ margin-bottom:0; }
+  .summary-list{ margin:0; padding-left:20px; }
+  .summary-list li{ margin-bottom:6px; font-size:14px; }
+  .objectives-list{ margin:0; padding-left:20px; }
+  .objectives-list li{ margin-bottom:6px; font-size:14px; }
+  .term-row{
+    background:#fff; border:2px solid var(--rule-strong); border-left:6px solid var(--blue); border-radius:8px;
+    padding:12px 16px; margin-bottom:10px;
+  }
+  .term-row:last-child{ margin-bottom:0; }
+  .term-row .term-name{ font-weight:800; font-size:16px; color:#4A3B32; }
+  .term-row .term-def{ font-size:13.5px; color:var(--ink-soft); margin-top:4px; line-height:1.5; }
+  .stamp-banner.pass .verdict{ color:var(--green); }
+  .stamp-banner.mid .verdict{ color:var(--blue); }
+  .stamp-banner.low .verdict{ color:var(--red); }
+
+  .review-item{
+    border-bottom:2px solid var(--rule); padding:13px 0; font-size:14.5px;
+  }
+  .review-item:last-child{ border-bottom:none; }
+  .review-item .q{ font-weight:700; margin-bottom:4px; }
+  .review-item .a{ font-size:13.5px; color:var(--ink-soft); }
+  .review-item .correct{ color:var(--green); font-weight:700; }
+  .review-item .incorrect{ color:var(--red); font-weight:700; }
+
+  .hint{ font-size:13px; color:var(--ink-faint); margin-top:4px; }
+  .app-credit{ text-align:center; font-size:14px; font-weight:700; color:var(--ink); padding:18px 14px 22px; line-height:1.7; }
+  .app-credit a{ color:var(--blue); text-decoration:underline; font-weight:700; }
+  .flex-between{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .dot{ width:9px; height:9px; border-radius:50%; background:var(--ink-faint); display:inline-block; margin-right:6px;}
+  .dot.ok{ background:var(--green); } .dot.pending{ background:var(--blue); } .dot.off{ background:var(--red); }
+  pre.code-block{
+    background:#3A2E24; color:#F5E4D0; padding:16px 18px; border-radius:var(--radius-sm);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11.5px; line-height:1.6;
+    overflow-x:auto; white-space:pre;
+  }
+  code.inline{ background:var(--paper-dark); padding:2px 8px; border-radius:6px; font-family:ui-monospace,monospace; font-size:12px; }
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(8px);
+    background:var(--ink); color:#FFF6EA; padding:12px 20px; border-radius:var(--radius-pill); font-size:13.5px; font-weight:600;
+    opacity:0; transition:opacity 0.2s ease, transform 0.2s ease; pointer-events:none; z-index:50;
+    max-width:90%; box-shadow:0 4px 14px rgba(0,0,0,0.18);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .top-link{ display:inline-block; margin-bottom:14px; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; text-decoration:underline; }
+  .lock-card{ max-width:360px; margin:20px auto; text-align:center; }
+  .lock-card .lock-icon{ font-size:28px; margin-bottom:6px; }
+  .lock-card input{ text-align:center; letter-spacing:3px; font-size:18px; }
+  .lock-error{ color:var(--red); font-size:12.5px; margin-top:8px; min-height:16px; }
+
+  /* ---- Teacher contact footer ---- */
+  .contact-footer{
+    text-align:center;
+    margin-top:18px;
+    padding-top:16px;
+    border-top:2px solid var(--rule-strong);
+  }
+  .contact-footer .contact-title{ font-size:12px; font-weight:700; color:var(--ink-faint); margin-bottom:8px; }
+  .contact-footer .contact-links{ display:flex; justify-content:center; gap:14px; flex-wrap:wrap; }
+  .contact-footer a{
+    font-size:13px; font-weight:600; color:var(--ink-soft); text-decoration:none;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .contact-footer a:hover{ color:var(--ink); text-decoration:underline; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="org-header">
+      <img class="org-logo" src="data:image/png;base64,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5PEOskGYGtGSahn6wbVEu1+d8vCzQQ60pr515H5V1fqLH+bHDn6vgxl91T0AUMgXylGZmVtaWvxv9j0T057Hb/+0Q3yQx/CBfX+F8fFxEbHWNjU17Qv9dESLedTLu98FqZ2hAxHnfi9e++Q00Kr9rtghj9O+t9jvh/derb5k8ADfrec7AMrlcrFYBJDJZFKp1BFIhhpryefzDzzwwNNPP+2cC4IgjmMRueiii66++upcLldbBVWN43j16tWrV68uFUs+WSCO4+XLl1977bW5XO7+++/fsGGD//r8+fNPO+005xyAkZGRrVu3joyMLF++/Prrr3/ggQe2bNkSBIGIrFy5squry8+/VCqtX79+cHBw4cKFr3/96621GzZseOihh3bu3JlOp/3de3t7r7766hUrVvhK+X3nFsdxEATOuQceeGBycrKtrc0YI052De4C8LznPa+trS2OY2ZmYhBGRkZ+/etfP/HEE0EQRFG0atWqa665plwuh2HomY2qPv744w8/9PBkftI5t2LFilWrVvX29hKRZ+rW2r6+vp/+9KdxHK9YscKv2I4dO9ra2q699to1a9aceeaZ/pf1ThpRIaJ169Y99NBDfX19fueiKOrt7b36qqtXnrGytsH+LsPDww888MDGjRv9fZctW7ZgwQK/blEUbdiwYdeuXe3t7b/zO7/T0tJSfzr9/8vl8re+9a2XvOQlzc3NFeQ8otrFBwcH77vvvnXr1uVyuTiKzzr7rNbW1lKptG3btlwud/bZZ59zzjnM7KXfyMjIgw8+uGbNmsAGURzdcMMNl19+ebFYzKQzCk2SJEmSJ5544rFHHxufGCfQ8hXLr7vuujAMf/nLXz7zzDNEZK1NksRae8EFF1x22WVr165dvXp1qVRS1YULF7761a+Oo5gNM7OKAti+ffu9997b19enqp2dnVddddXZZ5+tqsYYv5XGmIceeujhhx/u7u5euHBhGIb5fL6vr+/yyy/v6Ojo6+s7//zzDyii77zzTlV1znnpUy6XC4XCD37wg+uuu27VqlXPe97zfvSjHxUKhXK57BJXk2IiEkdxoVB4/PHHb7vttquvvvqSSy758Ic/PDIyUigUCoXC2NjYN7/5zeuuu+6SSy756Ec/6pzL5/OFQmFkZOTxxx9/05vedPPNN4+Ojo6MjPzFX/zFVVdddcUVV/z3f/+3c65UKkVRNDo6unHjxj/90z+9+eab8/l8kiT5fL6/v/+d73znFVdcccUVV9xxxx19fX3+w34Xpw0/o40bN77rj9/1uc99bnR0tPaxYrH43e9+9/Wvf/3dd9+tqv4KcRxPTk7m8/lvf/vbV1555TXXXHPrrbdu3LjROZckiYi4xEVRVCqV1qxZc9NNN33gAx/YvXt3sVh0zvmvJ0nyjW9846abbvrYxz42MjLib1cul0dGRj71qU+95jWv+aM/+qNCoeBXr/5RRSSKokKhUJvg5Zdf/o53vKOvr69cLvvr138yn8+Pjo5++tOfXrVq1aWXXvr1r3/dOVcsFqMompiY2LJly0c+8pFrr712YGBg2r38mjz11FOXXXbZPffco6p+av5jzrkoiorF4ujo6Cc+8Ykrr7zy8ssvv+vOu5xzIyMj69evf9e73nXVVVe9973v3bVrl3MujuNisTgxMfGVr3zlkksuWbVq1W/+5m9u27bNr5iqxlFcLBaLxeKaNWte8IIX/PVf/fXo6Gg+n8/n8xMTE1/84hevvPLKa6+99rrrrrvzzjv98SgWi4899tiLX/ziK6+88uqrr/7hD3+oqqVSqbbIpVJpaGjone9852/91m9t3rw5iiLPcP3U+vv7/+RP/uTFL37xz372syiK/KyjKHriiSfe/va3v+xlL/v85z9fW4fa8E9755137k3h9hyCma21Z5xxxtq1a7du3fr85z//9ttvN2zY8L4FR558y+Xyk08+uXDhwg984AOdnZ1EZKwJw/Dcc8999NFHh4aGLr300iuuuEJVgyBIpVLz58+/6aab1qxZc8EFF8ybN2/lypV+Y170ohctXrzYP4C1trOz88Ybb9yxY8dZZ53lOVxra2t3d/cDDzyQSqXe8573nHHGGZ4Z76sbxHFsrX3sscfuuOOOK6+88i1vfUsQBCoqTpw4a+3ZZ59tjPngBz/Y3Nx84YUXihM/93Q6ffbZZ2/YsGF8fNyf+9/4jd/wgouqucS9vb3OuZtvvnnJkiV+0by69Y//8I+f/NQnb7311j/5kz8JgsAvMYB0On3VVVetXr26v7//la98pefxNC3jiNlPsKur67777qufYL3NVvtPLpc7+5yz77333mKxeP3115911lmeyxpj2tvbV61aNT4+vnDhwu7u7nou6J/zi1/84tNPP22Mef7zn18vGWpaeDabPeecc+65554kSW666aalS5caY7q7u6+//vrVq1f/8p5f7tmz54YbbvDqSm3F/BFft27djTfe6KfDxJ6p9/b2lsvl2267bf78+f45U6nUhRdeuHr16l27dt14441vfOMb/ab7EwVgy5Yt1tpf//rXF1988fz5851zXOknSk1NTe3t7YsXL161apVXRL12umPHjve9732PPPLIxz72sauvvtqfeK+PzJ8//7zzzvvqV7960UUXXXTRRdMkQy2F+4D2RyaTiaIom82qz4WbaiwSERs2xqhqNpuNylEmkwnD0Cu+ho3f8nQ6HcdxvSlGRHEcp9Ppl7/85fl8HoC11utj9bajnyGAG264oVwu+6/7e3kBncvlDlSD4Rfu2Weffe973zt//vy3/uFbvf3Eho01QRB4kXrbbbddd911f//3f3/33XcbawAEQQBgYmLi2muvfcVvvyKO4/Xr13/qU5/yWoG/nZ9yT09PKpXyD+yl/He+850vf+XL55xzzlvf+la/gGEYGmP8NQG8+c1vzmaztdWY6rQnb++qqr+stdav/L42OhH5awY2SKVS5XK5ft2MMf5RfVr+vkazV1NbWloefvjhzZs3M7M/NDVd3KvjROQvXtu7KIrS6fSqVauampoeeeSR7du31xT3iYmJG15ww6233uqce/LJJz/96U8bY6IoIiZjjNfAe3t7/WP7W/hJZTKZOI6bmppq1rmnh56enttvv91aWyqVPvKRj4yMjPjFqa1/S0tLR0dH/QEoFUt/+7d/+9RTT73u9a+75JJLvIbsj5ZnTIsXL37lK1+Zn8wfgWu1nglNM2im70olx5mMLx/Q/dt5NaeB/8/4+Hh/f7+qXnrppYsXL/YLXe9YqOkDftrnn39+jb3VOxwOYuX7A/Sv//qvw8PDt9xyi9f4p5mwfvtvu+22VCr12c9+dnh4uPYY1tpyufx7v/97z3ve81T1rrvu+s53vhOGoT9b/tb+oPurBUGwe3j31772tSAIbr755ra2tiRJakeqdsqXL19+2WWXTU5OHsgg9sN/sX6C02Zae1mTMPt6yQCcfvrpy5Ytqz8u/poPPfTQq171qqVLl46Ojv7kJz85yBrWO6Zq29TZ2QmCqo6OjtZTYBzFb3rTm6688kpjzPe+973vf//7mUwmSZLaM6dSqX2t3trxmDbBYrG4atWqt73tbaKybdu2j33sYxVIvjrkwtr6O+estT/56U8effTRxYsX33brbV4o1UcFPSd94QtfmDkoZiwfxANzSGyCmjGtqgrd7+bVHDIuccy8ZcuWTRs3eR7Q1NRUW+Xax8RJoVC47777/KWy2ew0i9OvYL07r/52zjki+tWvfvXII4/09PRcfNHF+/UOe+Xq3HPPXbBwwbZt2+666y4i8se9Not3v/vdy5YtI6bPfOYzjz76aBiGtd2dNrt7fnnPwMBAV1eXp599d92v5Atf+MKaoDiGCPF0J2NN8Y3j+N577/UrkE6n/fLWP2ehUNi5c+eqVasuvvhiAPfdd9/oyKin1dr67NdR7gUgM+/atctrJj09PdPEkTHGi2JjzD/90z+tXbvWi/dDerf2Fe/W2snJyVtuueWWm28honvvvfffv/DvzFwTg/UOJX/3u+++O4qis88+e+nSpSLChuuTdv1ElixectVVVx3kVDcm6HZQjPjKWUxn0vl8/stf/rI/iNO+5ZkHEQVhsGPHjo0bN9aESf2Jr+dVB7njww8/XCqV2tvaFy5auF+XJTOLk/a29vnz5nt+WXOz+msmSdLW1vZnf/ZnmXQmjuKPfvSju3btCoLAiau/tf/78ccfV9V58+YtXLhwv85vIlLRFStWNDc3H4738/CXXVWDMPCrNzIy8uSTT3pNoyY/68/cunXr5s2bR0TXXXddU1PT9u3bH3jggZor7CBeaW9N7dy583vf+14URbfccsuCBQu8Olo7kd698773vc9aG0XRX//1X4+OjtaL/cMh8tqR8Cv2tre97awzz7LWfvGLX/zFL36RTqfrlYgakff39+/cuZOZzznnnPpjM+2TYSr0rqcDubBnNgLt1d+BgYGHH374C1/4whvf+MZ7770315Tb95PGmK1bt27YsOFnP/vZhz70oSiKcFTNSvw8veutta3Vuyn3uw0KNdZ0dHQAGBoaKhaLNWbjuXu5XF65cuXb3/52Udm1a9dHP/rRUqlULaah2u2cc4ODg8659vb2mhN2PxyBZwQFyBo70D+wYcOG++677/3vf//IyMi+IcXafdeuXXvhhReKyLnnnnvOOeckSfLTO396kAAcEXmzeGJiYs2aNX/1l3+VzWbf/va3v+Utb6mnhNpSlEql884774/+6I+8Q/nv/u7vaibskdYxe907m83+yXv/xO/RJz7xia1bt3pO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" alt="ALS logo">
+      <div class="org-name">ALTERNATIVE LEARNING SYSTEM</div>
+      <div class="org-address">City Schools Division of Dasmariñas</div>
+    </div>
+    <h1 id="brandTitle" onclick="handleBrandTap()">Lesson Reviewer</h1>
+    <small>You've got this — practice at your own pace 🌟</small>
+  </div>
+
+  <!-- LOGIN -->
+  <section class="screen active" id="screen-login">
+    <div class="card">
+      <div class="field"><label>Your name</label><input id="loginName" placeholder="Sample - Yen Isaac C. Bobis"></div>
+      <div class="field"><label>LRN (Learner Reference Number)</label><input id="loginLrn" placeholder="12-digit LRN — ask your teacher if unsure" inputmode="numeric"></div>
+      <div class="field"><label>CLC &amp; Program Enrolled</label><input id="loginClass" placeholder="ALS Center / Elementary"></div>
+      <button class="block" onclick="goToLessons()">Continue</button>
+    </div>
+    <div class="hint" style="text-align:center;">Your results save on this device and sync to your teacher's records when online.</div>
+    <div class="card" id="inAppWarn" style="display:none; border-color:var(--red); text-align:center;">
+      <strong>Open this file in Chrome or Safari.</strong>
+      <div class="hint" style="margin-top:4px;">You're inside Messenger/Facebook's built-in viewer, which can block saving and sending results. Tap ⋮ or the share icon → "Open in browser".</div>
+    </div>
+    <div class="card" id="studentConnectCard" style="margin-top:16px;">
+      <div class="flex-between" style="margin-bottom:10px;">
+        <div class="hint"><span class="dot" id="studentConnectDot"></span><span id="studentConnectStatusText">Not connected</span></div>
+        <span class="top-link" id="studentConnectToggle" onclick="toggleStudentConnectField()" style="display:none;">Change</span>
+      </div>
+      <div id="pendingLine" style="display:none; margin-bottom:10px; text-align:center;">
+        <div class="hint" id="pendingText" style="font-weight:700;"></div>
+        <button class="ghost small" style="margin-top:6px;" onclick="retrySyncFromResults()">Send now</button>
+      </div>
+      <div id="studentConnectFieldWrap">
+        <div class="field"><label>Connect to your teacher's spreadsheet</label><input id="studentConnectInput" placeholder="Paste the link your teacher sent you"></div>
+        <button class="block" onclick="connectFromPastedLink()">Connect</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LESSON PICKER -->
+  <section class="screen" id="screen-lessons">
+    <span class="top-link" onclick="showScreen('login')">← Back</span>
+    <div class="card" style="padding:14px 16px;">
+      <div class="hint">Reviewing as <strong id="whoAmI"></strong></div>
+    </div>
+    <div class="intro-blurb">
+      <div class="intro-blurb-title">📚 About the Lesson Reviewer</div>
+      <div class="intro-blurb-row"><strong>What:</strong> A place to read short lessons and check what you've learned.</div>
+      <div class="intro-blurb-row"><strong>When:</strong> Anytime — after class, during self-study, or whenever you want to practice.</div>
+      <div class="intro-blurb-row"><strong>How:</strong> Pick a lesson below → read through it → take the short review → see your score right away.</div>
+    </div>
+    <div class="lesson-grid" id="lessonGrid"></div>
+  </section>
+
+  <!-- LESSON CONTENT ("Learn" step) -->
+  <section class="screen" id="screen-content">
+    <span class="top-link" onclick="renderLessonGrid(); showScreen('lessons')">← Back to lessons</span>
+    <div class="hint" style="margin-bottom:10px;">Reviewing as <strong id="whoAmIContent"></strong></div>
+    <div class="card">
+      <div class="tag" id="contentCompetencyTag" style="margin-bottom:8px;"></div>
+      <h3 style="margin:0 0 14px;" id="contentTitle"></h3>
+    </div>
+
+    <div class="content-section content-section-intro" id="sectionIntro" style="display:none;">
+      <div class="content-section-label">💡 Why This Matters</div>
+      <div id="contentIntro"></div>
+    </div>
+
+    <div class="content-section content-section-prior" id="sectionPrior" style="display:none;">
+      <div class="content-section-label">🤔 What You Already Know</div>
+      <div id="contentPrior"></div>
+    </div>
+
+    <div class="content-section content-section-objectives">
+      <div class="content-section-label">🎯 What You'll Learn</div>
+      <ul class="objectives-list" id="contentObjectives"></ul>
+    </div>
+
+    <div class="content-section content-section-terms">
+      <div class="content-section-label content-section-label-terms">🔑 Key Terms</div>
+      <div id="contentTerms"></div>
+    </div>
+
+    <div class="content-section content-section-minilesson" id="sectionMiniLesson" style="display:none;">
+      <div class="content-section-label">📘 Mini-Lesson</div>
+      <div id="contentMiniLesson"></div>
+    </div>
+
+    <div class="content-section content-section-guided" id="sectionGuided" style="display:none;">
+      <div class="content-section-label">🧭 Guided Instruction</div>
+      <div id="contentGuided"></div>
+    </div>
+
+    <div class="content-section content-section-reading" id="sectionReading" style="display:none;">
+      <div class="content-section-label">📖 Reading Selection</div>
+      <div class="reading-passage" id="contentReading"></div>
+      <p class="hint" style="margin-top:8px;">Comprehension questions about this passage are included in the review ahead.</p>
+    </div>
+
+    <div class="content-section content-section-apply" id="sectionApply" style="display:none;">
+      <div class="content-section-label">🛠️ Apply It</div>
+      <div id="contentApply"></div>
+    </div>
+
+    <div class="content-section content-section-summary" id="sectionSummary" style="display:none;">
+      <div class="content-section-label">✅ What You've Learned</div>
+      <ul class="summary-list" id="contentSummary"></ul>
+    </div>
+
+    <button class="block" id="contentActionBtn" onclick="beginQuiz()">Start the review</button>
+  </section>
+
+  <!-- REVIEW / QUIZ -->
+  <section class="screen" id="screen-review">
+    <div class="hint" style="margin-bottom:8px;">Reviewing as <strong id="whoAmIReview"></strong></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="q-count" id="qCount"></div>
+    <div class="card">
+      <div class="q-prompt" id="qPrompt"></div>
+      <div id="qOptions"></div>
+      <div id="qIdentification" style="display:none;">
+        <input id="idAnswer" placeholder="Type your answer">
+      </div>
+    </div>
+    <div class="row">
+      <button class="ghost" onclick="prevQuestion()" id="prevBtn">Back</button>
+      <button class="block" onclick="nextQuestion()" id="nextBtn">Next</button>
+    </div>
+    <div style="text-align:center; margin-top:12px;">
+      <span class="top-link" onclick="viewLessonWhileQuizzing()">📖 Review the lesson content</span>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="stamp-banner" id="resultBanner">
+      <div class="result-student" id="resultStudentLine"></div>
+      <div class="emoji" id="resultEmoji">🌟</div>
+      <div class="pct" id="resultPct">0%</div>
+      <div class="verdict" id="resultVerdict">—</div>
+      <div class="result-lesson" id="resultLessonLine"></div>
+      <div class="result-date" id="resultDateLine"></div>
+    </div>
+    <div class="card" id="syncStatusCard" style="text-align:center;">
+      <div id="syncStatusText" style="font-weight:700;"></div>
+      <div id="syncStatusDetail" class="hint" style="margin-top:6px;"></div>
+      <button class="ghost" id="syncRetryBtn" style="margin-top:10px; display:none;" onclick="retrySyncFromResults()">Send to teacher now</button>
+    </div>
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:10px;">
+        <strong id="resultLessonTitle"></strong>
+        <span class="hint" id="resultScoreLine"></span>
+      </div>
+      <div id="resultBreakdown"></div>
+    </div>
+    <div class="card" id="lessonHistorySection" style="display:none;">
+      <h4 style="margin-top:0;">Your progress on this lesson</h4>
+      <div id="lessonHistoryList"></div>
+    </div>
+    <div class="card" id="badgeSection" style="display:none; text-align:center;">
+      <div id="badgeVisual" style="margin-bottom:12px; font-size:15px;"></div>
+      <button class="ghost" onclick="downloadCertificate()">Download certificate</button>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0;">Item review</h4>
+      <div id="reviewList"></div>
+    </div>
+    <div class="row">
+      <button class="ghost block" onclick="openLessonContent(session.lessonId)">Review the lesson</button>
+      <button class="ghost block" onclick="renderLessonGrid(); showScreen('lessons')">Choose another lesson</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS (teacher) -->
+  <section class="screen" id="screen-settings">
+    <span class="top-link" onclick="showScreen('login')">← Back</span>
+
+    <div id="syncLockSetup" class="card lock-card" style="display:none;">
+      <div class="lock-icon">🔒</div>
+      <h3 style="margin-top:0;">Protect these settings</h3>
+      <p class="hint">Set a PIN so students can't change the sync connection by accident. This is a light deterrent, not real security — anyone editing the file's code directly can still bypass it.</p>
+      <div class="field"><label>Choose a PIN</label><input id="setupPin" type="password" inputmode="numeric" placeholder="4+ digits"></div>
+      <button class="block" onclick="setSyncPin()">Set PIN &amp; continue</button>
+    </div>
+
+    <div id="syncLockEnter" class="card lock-card" style="display:none;">
+      <div class="lock-icon">🔒</div>
+      <h3 style="margin-top:0;">Enter PIN</h3>
+      <div class="field"><input id="enterPin" type="password" inputmode="numeric" placeholder="PIN" onkeydown="if(event.key==='Enter')checkSyncPin()"></div>
+      <button class="block" onclick="checkSyncPin()">Unlock</button>
+      <div class="lock-error" id="pinError"></div>
+    </div>
+
+    <div id="syncContent" style="display:none;">
+    <div class="card">
+      <h3 style="margin-top:0;">Contact information</h3>
+      <p class="hint">Your contact details now show in the credit footer at the bottom of every screen. To change the phone, email, or Facebook link shown there, edit that footer directly in the file.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Results sync</h3>
+      <div class="field"><label>Results Web App URL</label><input id="sheetsUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      <div class="field"><label>Sync Key</label><input id="sheetsKey" placeholder="must match SYNC_KEY in the script"></div>
+      <div class="row">
+        <button class="ghost" onclick="saveSheetsUrl()">Save</button>
+        <button class="ghost" onclick="testConnection()">Test connection</button>
+      </div>
+      <div class="hint" id="syncDiag" style="margin-top:10px;"></div>
+      <div class="flex-between" style="margin-top:12px;">
+        <div class="hint"><span class="dot" id="syncDot"></span><span id="syncPillText">Not connected</span></div>
+        <button onclick="syncNow()">Sync now</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">One-time setup: Results &amp; Dashboard sheet</h3>
+      <ol style="padding-left:18px; font-size:13.5px;">
+        <li style="margin-bottom:6px;">Create a new Google Sheet for results (separate from your private lesson-planning sheet).</li>
+        <li style="margin-bottom:6px;">Open <b>Extensions → Apps Script</b>, delete any starter code, and paste the script below.</li>
+        <li style="margin-bottom:6px;"><b>Leave <code class="inline">SYNC_KEY</code> exactly as it is in the script below</b> — it already matches this Reviewer file, which is how every student's copy connects automatically without them ever typing a key. Changing it will quietly break syncing for every student device that uses the simple "paste the link" box, since they have no way to enter a different key themselves. (If you deliberately want a different key, you must also open the hidden teacher Settings on every student device and set the matching Sync Key there — not practical for a class, so this is not recommended.)</li>
+        <li style="margin-bottom:6px;">Click <b>Deploy → New deployment → Web app</b>. "Execute as" <b>Me</b>, "Who has access" <b>Anyone</b>. Deploy and authorize.</li>
+        <li style="margin-bottom:6px;">Copy the Web app URL and paste it above, click <b>Save</b>, then <b>Test connection</b> — it will now tell you plainly if the key doesn't match instead of just saying "Connected" when it isn't really working.</li>
+        <li>The first synced result auto-creates a <code class="inline">Results</code> tab and a <code class="inline">Dashboard</code> tab. The script also rejects the wrong key, out-of-range scores, and duplicate submissions.</li>
+        <li><b>If you already deployed a copy of this script and changed <code class="inline">SYNC_KEY</code> away from <code class="inline">cEo0616</code></b>, that's almost certainly why syncing looks "Connected" but nothing reaches your sheet: open Extensions → Apps Script on that sheet, change the <code class="inline">SYNC_KEY</code> line back to exactly <code class="inline">cEo0616</code>, save, then <b>Deploy → Manage deployments →</b> (pencil icon) <b>→ Version: New version → Deploy</b>. This updates the same link already in the Reviewer, so you won't need to send students a new one.</li>
+        <li>If you already had a Results sheet from before LRN was added, this new script upgrades it automatically the next time it runs — your existing rows are untouched, and an <code class="inline">LRN</code> column plus a new "current attempt only" Dashboard section are added going forward.</li>
+        <li>A new "📊 Visual Summary" section (scorecards + two charts) is added near the bottom of the Dashboard tab automatically — scroll down to find it after your first sync with this version.</li>
+      </ol>
+      <pre class="code-block" id="gscript">/* Leave this exactly as-is — it already matches the Reviewer file your
+   students use, which is what lets their "paste the link" box connect
+   automatically with no key of their own to type. See the setup notes
+   above before changing it. */
+var SYNC_KEY = "cEo0616";
+var MAX_FIELD_LENGTH = 300;
+var EXPECTED_COLUMNS = 12;
+var RESULTS_HEADERS = ["Timestamp","Student","Class","Lesson","Learning Competency","Score","Max","Percentage","Weakest Tag","Tag Breakdown","Recommendation","LRN"];
+var ALLOWED_RECOMMENDATIONS = ["On Track","Needs Intervention","Ready for Advancement"];
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000); // wait up to 10s if another submission is being written
+  } catch (lockErr) {
+    Logger.log("LOCK TIMEOUT — could not acquire script lock");
+    return jsonOut({ status: "error", message: "Server busy, please retry" });
+  }
+  try {
+    var body = JSON.parse(e.postData.contents);
+    Logger.log("Received row: " + JSON.stringify(body ? body.row : null) + " | id=" + (body ? body.id : null));
+    if (!body || body.key !== SYNC_KEY) {
+      Logger.log("REJECTED: key mismatch. Received key='" + (body ? body.key : null) + "', expected='" + SYNC_KEY + "'");
+      return jsonOut({ status: "error", message: "Invalid sync key" });
+    }
+    if (!isValidRow(body.row)) {
+      Logger.log("REJECTED: row failed isValidRow(). Row length=" + (body.row ? body.row.length : "n/a") + ", expected=" + EXPECTED_COLUMNS);
+      return jsonOut({ status: "error", message: "Invalid data" });
+    }
+    if (isDuplicate(body.id)) {
+      Logger.log("SKIPPED: id " + body.id + " already marked as synced (duplicate) — not appending again");
+      return jsonOut({ status: "ok" });
+    }
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    Logger.log("Active spreadsheet: " + ss.getName() + " | " + ss.getUrl());
+    var sheet = ss.getSheetByName("Results");
+    if (!sheet) {
+      Logger.log("No Results sheet found — creating it now");
+      sheet = ss.insertSheet("Results");
+      sheet.appendRow(RESULTS_HEADERS);
+      sheet.getRange("M1").setValue("Is Latest");
+      setupDashboard(ss);
+    }
+    ensureLrnColumn(sheet); // self-heals a Sheet created before LRN was added
+    ensureLatestDashboardSection(ss); // self-heals a Dashboard created before LRN was added
+    ensureAllTimeRecommendationFormula(ss); // self-heals the older pivot formula on existing sheets
+    ensureVisualDashboard(ss); // self-heals a Dashboard created before charts/scorecards existed
+    var cleanRow = sanitizeRow(body.row);
+    sheet.appendRow(cleanRow);
+    var newRowNumber = sheet.getLastRow();
+    Logger.log("SUCCESS: row appended to sheet '" + sheet.getName() + "' at row " + newRowNumber);
+    updateLatestFlags(sheet, cleanRow[11], cleanRow[3], newRowNumber);
+    logSyncedId(body.id);
+    return jsonOut({ status: "ok" });
+  } catch (err) {
+    Logger.log("EXCEPTION: " + err.message + " | stack: " + err.stack);
+    return jsonOut({ status: "error", message: "Server error" });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var resultsSheet = ss.getSheetByName("Results");
+  var providedKey = e && e.parameter ? e.parameter.key : null;
+  return jsonOut({
+    status: "ok",
+    message: "Reviewer results endpoint is live",
+    keyValid: providedKey == null ? null : (providedKey === SYNC_KEY),
+    spreadsheetName: ss.getName(),
+    spreadsheetUrl: ss.getUrl(),
+    resultsSheetExists: !!resultsSheet,
+    resultsRowCount: resultsSheet ? resultsSheet.getLastRow() : 0
+  });
+}
+
+function isValidRow(row) {
+  if (!Array.isArray(row) || row.length !== EXPECTED_COLUMNS) return false;
+  var score = Number(row[5]);
+  var max = Number(row[6]);
+  var pct = Number(row[7]);
+  if (isNaN(score) || isNaN(max) || isNaN(pct)) return false;
+  if (score < 0 || max <= 0 || score > max) return false;
+  if (pct < 0 || pct > 100) return false;
+  if (ALLOWED_RECOMMENDATIONS.indexOf(row[10]) === -1) return false;
+  return true;
+}
+
+function sanitizeRow(row) {
+  return row.map(function (v) {
+    var s = (v === null || v === undefined) ? "" : String(v);
+    s = s.trim();
+    if (s.length > MAX_FIELD_LENGTH) s = s.substring(0, MAX_FIELD_LENGTH);
+    return s;
+  });
+}
+
+function isDuplicate(id) {
+  if (!id) return false;
+  var ids = JSON.parse(PropertiesService.getScriptProperties().getProperty("SYNCED_IDS") || "[]");
+  return ids.indexOf(id) !== -1;
+}
+
+function logSyncedId(id) {
+  if (!id) return;
+  var props = PropertiesService.getScriptProperties();
+  var ids = JSON.parse(props.getProperty("SYNCED_IDS") || "[]");
+  ids.push(id);
+  if (ids.length > 300) ids = ids.slice(ids.length - 300);
+  props.setProperty("SYNCED_IDS", JSON.stringify(ids));
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Upgrades a Results sheet created before the LRN column existed —
+// adds the LRN header and the "Is Latest" helper column without touching any existing rows.
+function ensureLrnColumn(sheet) {
+  var headerRange = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1));
+  var headers = headerRange.getValues()[0];
+  if (headers.indexOf("LRN") === -1) {
+    sheet.getRange(1, 12).setValue("LRN");        // column L
+    sheet.getRange(1, 13).setValue("Is Latest");  // column M
+  }
+}
+
+// Marks exactly one row as "Latest" for a given LRN+Lesson pair — clears any
+// previous "Latest" flag for that same pair, then flags the newly appended row.
+// Only ever touches the actual range of existing data rows, never open-ended,
+// so it can never trick Sheets into treating unused rows as "used."
+function updateLatestFlags(sheet, lrn, lessonTitle, newRowNumber) {
+  var priorRowCount = newRowNumber - 2; // number of existing rows before this new one (row 2 is the first data row)
+  if (priorRowCount > 0 && lrn) {
+    var lrnValues = sheet.getRange(2, 12, priorRowCount, 1).getValues();
+    var lessonValues = sheet.getRange(2, 4, priorRowCount, 1).getValues();
+    for (var i = 0; i < lrnValues.length; i++) {
+      if (lrnValues[i][0] === lrn && lessonValues[i][0] === lessonTitle) {
+        sheet.getRange(i + 2, 13).setValue("");
+      }
+    }
+  }
+  sheet.getRange(newRowNumber, 13).setValue("Latest");
+}
+
+function setupDashboard(ss) {
+  var dash = ss.getSheetByName("Dashboard");
+  if (dash) return;
+  dash = ss.insertSheet("Dashboard");
+  dash.getRange("A1").setValue("Reviewer Dashboard").setFontWeight("bold").setFontSize(14);
+
+  dash.getRange("A3").setValue("Average % by Lesson (all attempts, full history)");
+  dash.getRange("A4").setFormula('=IFERROR(QUERY(Results!D2:H,"select D, avg(H) where D is not null group by D label avg(H) \'Avg %\'",0),"No data yet")');
+
+  dash.getRange("D3").setValue("Recommendation counts by Lesson (all attempts, full history)");
+  dash.getRange("D4").setFormula('=IFERROR(QUERY(Results!D2:K,"select D, count(E) where D is not null group by D pivot K",0),"No data yet")');
+
+  dash.getRange("A14").setValue("Most common weak area by Lesson (top = most frequent)");
+  dash.getRange("A15").setFormula('=IFERROR(QUERY(Results!D2:I,"select D, I, count(I) where D is not null and I is not null group by D, I order by count(I) desc",0),"No data yet")');
+
+  dash.getRange("D14").setValue("Students: Needs Intervention (all attempts, full history)");
+  dash.getRange("D15").setFormula('=IFERROR(QUERY(Results!B2:K,"select B, C, D, H where K = \'Needs Intervention\' order by D, H asc",0),"No data yet")');
+
+  dash.getRange("H14").setValue("Students: Ready for Advancement (all attempts, full history)");
+  dash.getRange("H15").setFormula('=IFERROR(QUERY(Results!B2:K,"select B, C, D, H where K = \'Ready for Advancement\' order by D, H desc",0),"No data yet")');
+
+  writeLatestAttemptSection(dash);
+  writeScorecards(dash);
+  writeCharts(dash);
+}
+
+// Adds the "current status" section (based only on each student's MOST RECENT
+// attempt per lesson, grouped by LRN) — self-heals a Dashboard created before this existed.
+// Formulas are safe to rewrite every time (idempotent — no duplication risk like
+// charts have), so this always refreshes rather than checking a marker. That means
+// any future formula fix here applies automatically to every existing sheet on its
+// next sync, instead of being silently skipped because "it was already written once."
+function ensureLatestDashboardSection(ss) {
+  var dash = ss.getSheetByName("Dashboard");
+  if (!dash) return;
+  writeLatestAttemptSection(dash);
+}
+
+function ensureAllTimeRecommendationFormula(ss) {
+  var dash = ss.getSheetByName("Dashboard");
+  if (!dash) return;
+  dash.getRange("D4").setFormula('=IFERROR(QUERY(Results!D2:K,"select D, count(E) where D is not null group by D pivot K",0),"No data yet")');
+}
+
+function writeLatestAttemptSection(dash) {
+  dash.getRange("A24").setValue("Average % by Lesson (current attempt only)");
+  dash.getRange("A25").setFormula('=IFERROR(QUERY(Results!D2:M,"select D, avg(H) where D is not null and M = \'Latest\' group by D label avg(H) \'Avg %\'",0),"No data yet")');
+
+  dash.getRange("D24").setValue("Current status by Lesson (current attempt only)");
+  dash.getRange("D25").setFormula('=IFERROR(QUERY(Results!D2:M,"select D, count(E) where D is not null and M = \'Latest\' group by D pivot K",0),"No data yet")');
+
+  dash.getRange("A35").setValue("Students currently needing intervention (based on their latest attempt)");
+  dash.getRange("A36").setFormula('=IFERROR(QUERY(Results!B2:M,"select B, L, C, D, H where K = \'Needs Intervention\' and M = \'Latest\' order by D, H asc",0),"No data yet")');
+
+  dash.getRange("F35").setValue("Students currently ready for advancement (based on their latest attempt)");
+  dash.getRange("F36").setFormula('=IFERROR(QUERY(Results!B2:M,"select B, L, C, D, H where K = \'Ready for Advancement\' and M = \'Latest\' order by D, H desc",0),"No data yet")');
+}
+
+// Adds scorecards + charts in a fresh area (row 40+) so it never collides with
+// anything already placed on an existing Dashboard — self-heals like the section above.
+function ensureVisualDashboard(ss) {
+  var dash = ss.getSheetByName("Dashboard");
+  if (!dash) return;
+  var marker = dash.getRange("A40").getValue();
+  if (marker !== "📊 Visual Summary") {
+    writeScorecards(dash);
+  }
+  writeCharts(dash); // always rebuilt fresh, so a future range/code fix applies automatically
+}
+
+function writeScorecards(dash) {
+  dash.getRange("A40").setValue("📊 Visual Summary").setFontWeight("bold").setFontSize(13);
+
+  dash.getRange("A42").setValue("Total Attempts").setFontWeight("bold").setFontSize(10);
+  dash.getRange("A43").setFormula('=IFERROR(COUNTA(Results!D2:D),0)').setFontSize(24).setFontWeight("bold");
+
+  dash.getRange("C42").setValue("Unique Students Reached").setFontWeight("bold").setFontSize(10);
+  dash.getRange("C43").setFormula('=IFERROR(COUNTA(UNIQUE(FILTER(Results!L2:L,Results!L2:L<>""))),0)').setFontSize(24).setFontWeight("bold");
+
+  dash.getRange("E42").setValue("Overall Avg % (current attempts)").setFontWeight("bold").setFontSize(10);
+  dash.getRange("E43").setFormula('=IFERROR(ROUND(AVERAGE(FILTER(Results!H2:H,Results!M2:M="Latest")),1),"N/A")').setFontSize(24).setFontWeight("bold");
+
+  dash.getRange("G42").setValue("Needing Intervention Now").setFontWeight("bold").setFontSize(10);
+  dash.getRange("G43").setFormula('=IFERROR(COUNTIFS(Results!K2:K,"Needs Intervention",Results!M2:M,"Latest"),0)')
+    .setFontSize(24).setFontWeight("bold").setFontColor("#B3564B");
+}
+
+// Charts are always removed and rebuilt from scratch on every call — this makes
+// them self-correcting: if the ranges below are ever fixed again in the future,
+// every already-existing sheet picks up that fix automatically on its next sync.
+function writeCharts(dash) {
+  var existingCharts = dash.getCharts();
+  for (var i = 0; i < existingCharts.length; i++) {
+    dash.removeChart(existingCharts[i]);
+  }
+
+  // Tightly bounded to rows 25-34 ONLY — row 24 is the section header (not data),
+  // and row 35 is where the next, unrelated table begins. Never widen this past
+  // row 34 without also checking what else occupies these columns below it.
+  var avgChart = dash.newChart()
+    .asColumnChart()
+    .addRange(dash.getRange("A25:B34"))
+    .setPosition(46, 1, 0, 0)
+    .setOption("title", "Average % by Lesson (Current Attempt)")
+    .setOption("legend", { position: "none" })
+    .setOption("vAxis", { title: "Average %", minValue: 0, maxValue: 100 })
+    .setOption("colors", ["#5B7A8C"])
+    .setOption("width", 480)
+    .setOption("height", 300)
+    .build();
+  dash.insertChart(avgChart);
+
+  var statusChart = dash.newChart()
+    .asColumnChart()
+    .addRange(dash.getRange("D25:G34"))
+    .setPosition(46, 6, 0, 0)
+    .setOption("title", "Current Status by Lesson")
+    .setOption("isStacked", true)
+    .setOption("colors", ["#5BBE94", "#F08B72", "#FFB74D"])
+    .setOption("width", 480)
+    .setOption("height", 300)
+    .build();
+  dash.insertChart(statusChart);
+}</pre>
+      <button class="ghost small" style="margin-top:10px;" onclick="copyScript()">Copy script</button>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Content status</h3>
+      <p class="hint">Lessons currently in this file appear on the lesson picker automatically — add more anytime using the Lesson Builder.</p>
+    </div>
+    </div>
+  </section>
+</div>
+<div class="app-credit">
+  <div>Developed by Teacher Herma A. Cadiz-Vejerano © 2026</div>
+  <div>Email: <a href="mailto:teacherhermacadiz@gmail.com">teacherhermacadiz@gmail.com</a></div>
+  <div>FB: <a href="https://www.facebook.com/teacher.herma" target="_blank" rel="noopener">facebook.com/teacher.herma</a></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   LESSON CONTENT.
+   Each lesson: { id, title, learningDomain, learningCompetency, questions[] }
+   Each question: { id, type:'mc'|'id', tag, prompt, options?, correctIndex?, accepted?, explanation }
+   Only lessons listed in REAL_LESSONS below ever appear to students.
+   ========================================================================= */
+/* Real, authored lesson content goes here, keyed by lesson id. Use the
+   Lesson Builder tool to generate entries — this file ships empty. */
+const REAL_LESSONS = {
+  'lesson-6': {
+    title: "File Management Components",
+    learningDomain: "Domain 2. Computer File Management",
+    learningCompetency: "LC6. Discuss file management components (type of files, file/file manager, folder, recycle bin, search bar).",
+    ready: true,
+    content: {
+      introduction: "Every day, adults use computers to save job applications, school requirements, family photos, and important IDs. Knowing how files and folders work helps you keep your work organized, find what you need in seconds, and avoid losing something important.",
+      priorKnowledge: [
+        "Have you ever saved a photo, a document, or a song on a phone or computer? Where did you save it, and how did you find it again later?",
+        "Have you ever accidentally deleted something or been unable to find a file you needed? What did you do?",
+        "At home or at work, how do you keep papers organized, such as in folders, drawers, or envelopes? How might a computer do something similar?"
+      ],
+      objectives: [
+        "Define what a file is and name the four common types of files.",
+        "Explain the purpose of a file manager.",
+        "Describe how a folder is used to organize files.",
+        "Explain what the recycle bin does and why it is useful.",
+        "Use the search bar idea to find a file or folder by name."
+      ],
+      terms: [
+        { term: "File", explanation: "A piece of information saved in the computer, such as a photo, a song, a video, or a document." },
+        { term: "File Manager", explanation: "A program that lets you view, organize, and manage your files and folders in one place." },
+        { term: "Folder", explanation: "A container on the computer where you store and group related files together, like a paper folder in a cabinet." },
+        { term: "Recycle Bin", explanation: "A special folder that temporarily holds deleted files before they are permanently removed, so you still have a chance to get them back." },
+        { term: "Search Bar", explanation: "A box where you type the name of a file or folder to find it quickly." },
+        { term: "Audio File", explanation: "A file that contains sound only, such as a song or a recorded voice message." },
+        { term: "Audio-Visual File", explanation: "A file that has both moving pictures and sound, such as a video." },
+        { term: "Image File", explanation: "A file that contains a picture, such as a photo or a scanned ID." },
+        { term: "Document File", explanation: "A file that contains written content, such as a report, a letter, or a resume." },
+        { term: "File Name", explanation: "The name you give a file so you can recognize it and find it later, such as Resume_Maria." }
+      ],
+      miniLesson: [
+        "A file is a piece of information stored in the computer, such as a photo, a song, a video, or a document. Files come in different types. Audio files are things you listen to, like songs. Audio-visual files are things you watch and hear, like videos. Image files are pictures, like photos. Document files hold written work, like reports or letters.",
+        "Computers can hold thousands of files, so we need tools to manage them. A file manager is a program used to view, organize, and manage files and folders in a computer. It shows you what is stored and lets you open, move, rename, or delete files. A folder is a place used to store and organize files together, like a container. For example, you can make one folder for school requirements and another for family photos.",
+        "Sometimes a file is deleted by mistake. The recycle bin is a folder that temporarily holds deleted files before they are permanently removed. This gives you a chance to check and recover a file if you still need it. And when you cannot remember where a file is, the search bar can help. It is a tool used to quickly find a file or folder by typing its name.",
+        "Knowing these components helps a person keep a computer neat, find files quickly, and avoid losing important work."
+      ],
+      guidedInstruction: [
+        { title: "Sorting Files into Folders", example: "Ana has these files on her computer: a song called Paborito.mp3, a video called Birthday.mp4, a photo called Family.jpg, and a report called Barangay_Report.docx. She wants to make her computer neat. First, she identifies each type: Paborito is an audio file, Birthday is an audio-visual file, Family is an image file, and Barangay_Report is a document file. Next, she opens the file manager and creates folders named Music, Videos, Photos, and Documents. Finally, she places each file inside the folder that matches its type.", practice: "Your turn: A learner has these files: Resume.docx, Selfie.jpg, Lullaby.mp3, and Graduation.mp4. First, write the type of each file (audio, audio-visual, image, or document). Then, write the name of the folder where you would place each one." },
+        { title: "Deleting, Recovering, and Finding a File", example: "Ben deletes a file named Budget_October by mistake. He remembers that deleted files do not disappear right away, so he opens the recycle bin and sees Budget_October inside. He restores it, and the file returns to its place. Later, Ben cannot remember which folder holds the file Lease_Contract. Instead of opening every folder, he types Lease_Contract in the search bar, and the computer shows the file quickly.", practice: "Your turn: You deleted a file called Application_Letter by mistake. Write the steps you would take, in order, to get it back. Then, explain how you would find a file named Birth_Certificate if you forgot which folder it is in." }
+      ],
+      readingPassage: { title: "Lina Finds Her Missing Requirements", text: "Lina is an adult learner who is applying for a job at a local company. The employer asked her to send her resume, a copy of her ID, and a short introduction video. On the night before the deadline, Lina opened her computer and felt worried because she could not remember where she saved her files.\n\nShe opened the file manager to see all her folders. She noticed that her files were mixed together in one place. To find her resume quickly, she typed its name in the search bar, and the file appeared right away. Her ID was an image file, and her introduction was an audio-visual file, so she looked for them by their types.\n\nWhile cleaning up, Lina accidentally deleted her video. She did not panic. She opened the recycle bin, found the video, and restored it. After sending her requirements, she created folders named Documents, Photos, and Videos. From then on, she always saved her files in the right folder so she would never be in a hurry again." },
+      applyIt: "Think of three important files you may have or need, such as a resume, a photo of your ID, or a family video. Write down the type of each file (audio, audio-visual, image, or document). Then plan which folder name you would give each one, such as Documents, Photos, or Videos. If you have access to a computer or phone, try creating those folders and moving your files into them. Try using the search bar to find one of them by its name.",
+      summary: [
+        "A file is a piece of information stored in the computer, and the common types are audio, audio-visual, image, and document files.",
+        "A file manager is a program used to view, organize, and manage files and folders.",
+        "A folder stores and organizes files together, like a container.",
+        "The recycle bin temporarily holds deleted files before they are permanently removed, so you can recover them.",
+        "The search bar helps you quickly find a file or folder by typing its name."
+      ]
+    },
+    questions: [
+      { id:'q1', type:'mc', tag:"Terminology",
+        prompt: "What is a file?",
+        options: [
+          "A program used to delete other programs",
+          "A piece of information stored in the computer",
+          "A tool used to type on the computer",
+          "A machine that prints documents"
+        ], correctIndex: 1,
+        explanation: "A file is a piece of information stored in the computer, such as a photo, a song, a video, or a document." },
+      { id:'q2', type:'mc', tag:"Types of Files",
+        prompt: "A song saved on a computer is an example of which type of file?",
+        options: [
+          "Image file",
+          "Document file",
+          "Audio file",
+          "Audio-visual file"
+        ], correctIndex: 2,
+        explanation: "A song contains sound only, so it is an audio file." },
+      { id:'q3', type:'mc', tag:"Types of Files",
+        prompt: "Which of the following is an audio-visual file?",
+        options: [
+          "A photo of a family",
+          "A video of a birthday party",
+          "A written report",
+          "A recorded song"
+        ], correctIndex: 1,
+        explanation: "A video has both moving pictures and sound, so it is an audio-visual file." },
+      { id:'q4', type:'mc', tag:"Terminology",
+        prompt: "What is the main purpose of a file manager?",
+        options: [
+          "To view, organize, and manage files and folders",
+          "To play music only",
+          "To connect the computer to the internet",
+          "To permanently erase all files"
+        ], correctIndex: 0,
+        explanation: "A file manager is a program used to view, organize, and manage files and folders in a computer." },
+      { id:'q5', type:'mc', tag:"Real-World Application",
+        prompt: "Marco wants to keep all of his school requirements in one place so they are easy to find. What should he use?",
+        options: [
+          "A recycle bin",
+          "A folder",
+          "A search bar",
+          "A video file"
+        ], correctIndex: 1,
+        explanation: "A folder is a place used to store and organize files together, like a container." },
+      { id:'q6', type:'mc', tag:"Reading Comprehension",
+        prompt: "In the reading passage, how did Lina quickly find her resume?",
+        options: [
+          "She opened the recycle bin",
+          "She asked a friend for help",
+          "She typed its name in the search bar",
+          "She opened every folder one by one"
+        ], correctIndex: 2,
+        explanation: "The passage says Lina typed the name of her resume in the search bar, and the file appeared right away." },
+      { id:'q7', type:'mc', tag:"Reading Comprehension",
+        prompt: "In the reading passage, what did Lina do after she accidentally deleted her video?",
+        options: [
+          "She wrote the video again from the start",
+          "She opened the recycle bin and restored the video",
+          "She gave up and sent only her resume",
+          "She turned off the computer"
+        ], correctIndex: 1,
+        explanation: "Lina opened the recycle bin, found the deleted video, and restored it." },
+      { id:'q8', type:'id', tag:"Terminology",
+        prompt: "Identification: What do you call the folder that temporarily holds deleted files before they are permanently removed?",
+        accepted: ["recycle bin", "the recycle bin", "Recycle Bin"],
+        explanation: "The recycle bin temporarily holds deleted files, giving you a chance to recover them." },
+      { id:'q9', type:'id', tag:"Real-World Application",
+        prompt: "Identification: You forgot which folder contains a file named Lease_Contract. What tool can you use to find it quickly by typing its name?",
+        accepted: ["search bar", "the search bar", "Search Bar"],
+        explanation: "The search bar is a tool used to quickly find a file or folder by typing its name." },
+      { id:'q10', type:'id', tag:"Reading Comprehension",
+        prompt: "Identification: In the reading passage, what type of file was Lina's introduction video?",
+        accepted: ["audio-visual", "audio-visual file", "audio visual", "audio visual file", "audiovisual", "audiovisual file"],
+        explanation: "The passage explains that Lina's introduction was a video, which is an audio-visual file because it has both pictures and sound." }
+    ]
+  },
+  'lesson-7': {
+    title: "Organizing Files and Folders",
+    learningDomain: "Domain 2. Computer File Management",
+    learningCompetency: "LC7. Perform procedures in organizing files and folders on the computer (opening/closing, saving, deleting,  locating/searching, sorting, creating, renaming and deleting folders, transferring files, backing up, and  restoring files).",
+    ready: true,
+    content: {
+      introduction: "Whether you are keeping job requirements, school records, or family photos, knowing how to organize files and folders saves you time and protects your important work. With a few basic steps, you can find what you need quickly and recover from mistakes.",
+      priorKnowledge: [
+        "When you finish writing something on a computer or phone, what do you do so it is not lost? Where does it go?",
+        "Have you ever copied important photos or documents to another place, such as a flash drive or another device? Why did you do it?",
+        "How do you arrange things at home or at work, such as papers, tools, or clothes, so you can find them easily?"
+      ],
+      objectives: [
+        "Describe how to open, close, save, and delete a file.",
+        "Use locating or searching and sorting to find files by name, date, size, or type.",
+        "Explain how to create, rename, and delete a folder.",
+        "Explain how to transfer files into a folder.",
+        "Explain why backing up is important and how restoring a deleted file works."
+      ],
+      terms: [
+        { term: "Opening", explanation: "Viewing the contents of a file." },
+        { term: "Closing", explanation: "Exiting a file without necessarily deleting it." },
+        { term: "Saving", explanation: "Storing a file so it can be opened again later." },
+        { term: "Deleting", explanation: "Removing a file or folder that is no longer needed." },
+        { term: "Locating or Searching", explanation: "Finding a file by using its name." },
+        { term: "Sorting", explanation: "Arranging files by name, date, size, or type." },
+        { term: "Creating a Folder", explanation: "Making a new place to store related files." },
+        { term: "Renaming", explanation: "Changing the name of a file or folder." },
+        { term: "Transferring", explanation: "Moving a file from one location into another, such as into a folder." },
+        { term: "Backing Up", explanation: "Making a copy of important files and saving it in another place in case the original is lost." },
+        { term: "Restoring", explanation: "Bringing back a deleted file to its original location." }
+      ],
+      miniLesson: [
+        "Organizing files and folders involves several basic procedures. Opening a file means viewing its contents, while closing it means exiting without necessarily deleting it. Saving a file stores it so it can be opened again later, and deleting removes a file that is no longer needed.",
+        "Locating or searching helps you find a file using its name, while sorting arranges files by name, date, size, or type. Creating a folder makes a new place to store related files, and renaming or deleting a folder changes its name or removes it.",
+        "Transferring files means moving them from one location to another, such as into a folder. Backing up files means making a copy in another place in case the original is lost. Finally, restoring a file from the Recycle Bin brings back a file that was recently deleted."
+      ],
+      guidedInstruction: [
+        { title: "Creating a Folder and Transferring Files", example: "Rosa has a file named Resume and a file named Application_Letter on her computer, and she wants to keep them together. First, she creates a new folder. Next, she renames the folder to Job_Requirements so it is easy to recognize. Then, she transfers Resume and Application_Letter into the folder. Now both files are in one place, and she can find them quickly.", practice: "Your turn: You have three files named Birth_Certificate, School_Records, and Barangay_Clearance. Write the steps you would take to put them all in one folder. Include the name you would give the folder." },
+        { title: "Backing Up and Restoring a File", example: "Jun has an important file named Budget_Plan. To protect it, he makes a copy and saves it in another place, such as a flash drive. This is called backing up. Later, he deletes Budget_Plan by mistake. He opens the Recycle Bin, finds the file, and restores it to its original location. If the Recycle Bin were emptied, his backup copy would still keep the file safe.", practice: "Your turn: Choose one important file you would not want to lose, such as a resume or an ID photo. Write where you would save its backup copy. Then explain how you would restore it if you deleted it by mistake." }
+      ],
+      readingPassage: { title: "Mang Ben's Organized Shop Records", text: "Mang Ben runs a small hardware store and recently began keeping his sales records on a computer. At first, all of his files were saved in one place, and he often spent a long time looking for a single record.\n\nHis daughter taught him how to organize them. She helped him create a folder named Sales and another named Receipts. Then Mang Ben transferred each file into the correct folder. When he needed an old record, he used the search bar to locate it by name, or he sorted the files by date to find the newest ones.\n\nOne afternoon, he deleted a file by mistake. He opened the Recycle Bin and restored it right away. His daughter also reminded him to back up his records by copying them to a flash drive every week. Now Mang Ben feels confident that his shop records are neat, easy to find, and safe even if the computer has a problem." },
+      applyIt: "Choose five files on your phone or computer, such as photos, documents, or videos. Create a folder with a clear name, rename it if needed, and transfer the files into it. Then sort the files by date or name and practice finding one by searching for its name. Finally, make a backup copy of the folder in another place, such as a flash drive or another device. Write down which step was easiest and which one you want to practice again.",
+      summary: [
+        "Opening a file lets you view it, and closing it exits the file without necessarily deleting it.",
+        "Saving stores a file so it can be opened again later.",
+        "Searching finds a file by name, and sorting arranges files by name, date, size, or type.",
+        "Creating, renaming, and deleting folders, and transferring files into them, keep your computer organized.",
+        "Backing up makes a copy in another place, and restoring brings back a deleted file."
+      ]
+    },
+    questions: [
+      { id:'q1', type:'mc', tag:"Terminology",
+        prompt: "What does saving a file mean?",
+        options: [
+          "Removing the file from the computer",
+          "Storing the file so it can be opened again later",
+          "Changing the name of the file",
+          "Arranging files by size"
+        ], correctIndex: 1,
+        explanation: "Saving stores a file so it can be opened again later." },
+      { id:'q2', type:'mc', tag:"Terminology",
+        prompt: "Which procedure arranges files by name, date, size, or type?",
+        options: [
+          "Backing up",
+          "Restoring",
+          "Sorting",
+          "Renaming"
+        ], correctIndex: 2,
+        explanation: "Sorting arranges files by name, date, size, or type." },
+      { id:'q3', type:'mc', tag:"Real-World Application",
+        prompt: "Elena wants to move her photo file into a folder named Family. Which procedure should she do?",
+        options: [
+          "Transferring",
+          "Closing",
+          "Restoring",
+          "Sorting"
+        ], correctIndex: 0,
+        explanation: "Transferring means moving a file from one location into another folder." },
+      { id:'q4', type:'mc', tag:"Real-World Application",
+        prompt: "Carlo wants a copy of his important documents in case the original files are lost. What should he do?",
+        options: [
+          "Delete the files",
+          "Rename the files",
+          "Back up the files",
+          "Close the files"
+        ], correctIndex: 2,
+        explanation: "Backing up means making a copy of important files and saving it in another place in case the original is lost." },
+      { id:'q5', type:'mc', tag:"Terminology",
+        prompt: "What does closing a file mean?",
+        options: [
+          "Exiting the file without necessarily deleting it",
+          "Removing the file permanently",
+          "Making a copy of the file",
+          "Finding the file by name"
+        ], correctIndex: 0,
+        explanation: "Closing a file means exiting without necessarily deleting it." },
+      { id:'q6', type:'mc', tag:"Reading Comprehension",
+        prompt: "In the reading passage, how did Mang Ben find the newest records?",
+        options: [
+          "He sorted the files by date",
+          "He deleted the old files",
+          "He backed up the files",
+          "He renamed the folder"
+        ], correctIndex: 0,
+        explanation: "The passage says he sorted the files by date to find the newest ones." },
+      { id:'q7', type:'mc', tag:"Reading Comprehension",
+        prompt: "In the reading passage, how often did his daughter remind Mang Ben to back up his records?",
+        options: [
+          "Every day",
+          "Every year",
+          "Every week",
+          "Only once"
+        ], correctIndex: 2,
+        explanation: "The passage says he should copy his records to a flash drive every week." },
+      { id:'q8', type:'id', tag:"Terminology",
+        prompt: "Identification: What do you call the procedure of bringing back a deleted file to its original location?",
+        accepted: ["restoring", "restore", "restoring a file"],
+        explanation: "Restoring brings back a deleted file to its original location, such as from the Recycle Bin." },
+      { id:'q9', type:'id', tag:"Real-World Application",
+        prompt: "Identification: What procedure helps you find a file by typing or using its name?",
+        accepted: ["locating", "searching", "locating or searching", "locating/searching", "search", "locate"],
+        explanation: "Locating or searching helps find a file using its name." },
+      { id:'q10', type:'id', tag:"Reading Comprehension",
+        prompt: "Identification: In the reading passage, what was the name of the folder Mang Ben's daughter helped him create for his receipts?",
+        accepted: ["Receipts", "receipts", "the Receipts folder", "Receipts folder"],
+        explanation: "The passage says she helped him create a folder named Sales and another named Receipts." }
+    ]
+  }
+};;;
+
+/* Only lessons that exist in REAL_LESSONS are ever shown to students.
+   There's no fixed count of 10 anymore — add a new key here (e.g. 'lesson-6')
+   whenever a new lesson is ready, and it appears automatically. Nothing to hide. */
+const LESSONS = Object.keys(REAL_LESSONS)
+  .sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]))
+  .map(id => ({ id, ...REAL_LESSONS[id] }));
+
+/* ---------------- State ---------------- */
+const STORAGE_KEY = "lessonReviewer_v1";
+
+/* Shipped defaults so every distributed copy of this file is pre-connected —
+   students never need to open Settings or enter anything to sync results. */
+const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzzP94ZL3hcOMuQUOT0iNCQwkcAbN8Y_uiehzSzU-bABs6QLFdHuBq62j8P5t_GajQtMQ/exec";
+const DEFAULT_SYNC_KEY = "cEo0616";
+const DEFAULTS_VERSION = "2026-10-19";
+let lastSyncError = "";
+let lastSyncUnconfirmed = false;
+
+let state = loadState();
+let session = { student:"", lrn:"", cls:"", lessonId:null, qIndex:0, answers:{} };
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(!parsed.settings.contact) parsed.settings.contact = { phone:"", email:"", social:"" };
+      // Phones that opened an older copy of this file keep that copy's saved
+      // link/key. Re-apply this file's shipped defaults once per defaults version.
+      if(parsed.settings.defaultsVersion !== DEFAULTS_VERSION){
+        parsed.settings.sheetsUrl = DEFAULT_SHEETS_URL;
+        parsed.settings.syncKey = DEFAULT_SYNC_KEY;
+        parsed.settings.defaultsVersion = DEFAULTS_VERSION;
+      }
+      if(!parsed.settings.sheetsUrl) parsed.settings.sheetsUrl = DEFAULT_SHEETS_URL;
+      if(!parsed.settings.syncKey) parsed.settings.syncKey = DEFAULT_SYNC_KEY;
+      if(!parsed.history) parsed.history = [];
+      return parsed;
+    }
+  }catch(err){}
+  return {
+    settings:{ sheetsUrl: DEFAULT_SHEETS_URL, syncKey: DEFAULT_SYNC_KEY, defaultsVersion: DEFAULTS_VERSION, contact:{ phone:"", email:"", social:"" } },
+    syncQueue:[],
+    history:[]
+  };
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(err){
+    /* Some iPhone/iPad browsers (especially inside the Messenger or
+       Facebook in-app browser, or Private Browsing) block writing to
+       local storage on a file opened this way. Without this guard, that
+       throws here and silently kills whatever was happening next —
+       including showing the student their results after Submit. Better
+       to keep going without saving than to freeze the whole screen. */
+    console.warn("Could not save to this device's storage:", err);
+  }
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+/* ---------------- Toast ---------------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove("show"), 2600);
+}
+
+/* ---------------- Screens ---------------- */
+function showScreen(name){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-" + name).classList.add("active");
+  if(name === "settings") openSyncTab();
+}
+
+/* ---------------- PIN lock ---------------- */
+let syncUnlockedThisSession = false;
+function simpleHash(str){
+  let h = 5381;
+  for(let i=0;i<str.length;i++){ h = ((h<<5)+h) + str.charCodeAt(i); h |= 0; }
+  return h.toString(36);
+}
+function openSyncTab(){
+  document.getElementById("syncLockSetup").style.display = "none";
+  document.getElementById("syncLockEnter").style.display = "none";
+  document.getElementById("syncContent").style.display = "none";
+  if(!state.settings.pinHash){
+    document.getElementById("syncLockSetup").style.display = "block";
+  } else if(!syncUnlockedThisSession){
+    document.getElementById("pinError").textContent = "";
+    document.getElementById("enterPin").value = "";
+    document.getElementById("syncLockEnter").style.display = "block";
+  } else {
+    document.getElementById("syncContent").style.display = "block";
+  }
+}
+function setSyncPin(){
+  const pin = document.getElementById("setupPin").value.trim();
+  if(pin.length < 4){ showToast("Use at least 4 digits"); return; }
+  state.settings.pinHash = simpleHash(pin);
+  saveState();
+  syncUnlockedThisSession = true;
+  openSyncTab();
+  showToast("PIN set");
+}
+function checkSyncPin(){
+  const pin = document.getElementById("enterPin").value.trim();
+  if(simpleHash(pin) === state.settings.pinHash){
+    syncUnlockedThisSession = true;
+    openSyncTab();
+  } else {
+    document.getElementById("pinError").textContent = "Incorrect PIN";
+  }
+}
+function goToLessons(){
+  const name = document.getElementById("loginName").value.trim();
+  const lrn = document.getElementById("loginLrn").value.trim();
+  const cls = document.getElementById("loginClass").value.trim();
+  if(!name || !lrn || !cls){ showToast("Enter your name, LRN, and class"); return; }
+  session.student = name;
+  session.lrn = lrn;
+  session.cls = cls;
+  const who = name + " — " + cls + " · LRN " + lrn;
+  document.getElementById("whoAmI").textContent = who;
+  renderLessonGrid();
+  showScreen("lessons");
+}
+function renderLessonGrid(){
+  const grid = document.getElementById("lessonGrid");
+  if(LESSONS.length === 0){
+    grid.innerHTML = '<div class="card"><p class="hint">No lessons have been added yet.</p></div>';
+    return;
+  }
+  grid.innerHTML = LESSONS.map((l)=>{
+    const attempts = lessonAttemptsFor(l.id, session.lrn);
+    const attemptsTag = attempts.length === 0 ? "" :
+      `<span class="attempts-tag">Tried ${attempts.length}x · Latest: ${attempts[0].pct}% · Best: ${Math.max(...attempts.map(a=>a.pct))}%</span>`;
+    return `
+    <button class="lesson-card" onclick="openLessonContent('${l.id}')">
+      <div class="num">${escapeHtml(l.id.replace('lesson-','LESSON '))}</div>
+      <h4>${escapeHtml(l.title)}</h4>
+      <p>${escapeHtml(l.learningCompetency)}</p>
+      <span class="tag">${l.questions.length} items</span>
+      ${attemptsTag}
+    </button>
+  `;
+  }).join("");
+}
+
+/* ---------------- Learn step ---------------- */
+let contentReturnMode = "start"; // "start" = fresh entry, "resume" = peeking mid-quiz
+function openLessonContent(lessonId){
+  session.lessonId = lessonId;
+  contentReturnMode = "start";
+  renderLessonContentScreen();
+  showScreen("content");
+}
+function viewLessonWhileQuizzing(){
+  contentReturnMode = "resume";
+  renderLessonContentScreen();
+  showScreen("content");
+}
+function renderLessonContentScreen(){
+  const lesson = currentLesson();
+  const c = lesson.content || {};
+  const who = session.student + " — " + session.cls + " · LRN " + session.lrn;
+  document.getElementById("whoAmIContent").textContent = who;
+  document.getElementById("contentCompetencyTag").textContent = lesson.learningDomain;
+  document.getElementById("contentTitle").textContent = lesson.title;
+
+  toggleSection("sectionIntro", c.introduction, () => {
+    document.getElementById("contentIntro").innerHTML = `<p class="mini-lesson-para">${escapeHtml(c.introduction)}</p>`;
+  });
+
+  toggleSection("sectionPrior", c.priorKnowledge && c.priorKnowledge.length, () => {
+    document.getElementById("contentPrior").innerHTML = c.priorKnowledge.map(q =>
+      `<div class="prior-question">• ${escapeHtml(q)}</div>`).join("");
+  });
+
+  const objectives = c.objectives || [];
+  document.getElementById("contentObjectives").innerHTML = objectives.map(o=>`<li>${escapeHtml(o)}</li>`).join("")
+    || '<li>Review the key terms below, then take the assessment.</li>';
+
+  const terms = c.terms || [];
+  document.getElementById("contentTerms").innerHTML = terms.map(t=>`
+    <div class="term-row">
+      <div class="term-name">${escapeHtml(t.term)}</div>
+      <div class="term-def">${escapeHtml(t.explanation)}</div>
+    </div>
+  `).join("") || '<p class="hint">No content added for this lesson yet.</p>';
+
+  toggleSection("sectionMiniLesson", c.miniLesson && c.miniLesson.length, () => {
+    document.getElementById("contentMiniLesson").innerHTML = c.miniLesson.map(p =>
+      `<p class="mini-lesson-para">${escapeHtml(p)}</p>`).join("");
+  });
+
+  toggleSection("sectionGuided", c.guidedInstruction && c.guidedInstruction.length, () => {
+    document.getElementById("contentGuided").innerHTML = c.guidedInstruction.map(g => `
+      <div class="guided-block">
+        <div class="guided-title">${escapeHtml(g.title || "")}</div>
+        <div class="guided-label">Worked Example</div>
+        <div class="guided-text">${escapeHtml(g.example || "")}</div>
+        <div class="guided-label">Your Turn</div>
+        <div class="guided-text">${escapeHtml(g.practice || "")}</div>
+      </div>
+    `).join("");
+  });
+
+  toggleSection("sectionReading", c.readingPassage && c.readingPassage.text, () => {
+    const rp = c.readingPassage;
+    document.getElementById("contentReading").innerHTML =
+      (rp.title ? `<div class="reading-passage-title">${escapeHtml(rp.title)}</div>` : "") +
+      escapeHtml(rp.text).replace(/\n/g, "<br><br>");
+  });
+
+  toggleSection("sectionApply", c.applyIt, () => {
+    document.getElementById("contentApply").innerHTML = `<p class="mini-lesson-para">${escapeHtml(c.applyIt)}</p>`;
+  });
+
+  toggleSection("sectionSummary", c.summary && c.summary.length, () => {
+    document.getElementById("contentSummary").innerHTML = c.summary.map(s =>
+      `<li>${escapeHtml(s)}</li>`).join("");
+  });
+
+  const btn = document.getElementById("contentActionBtn");
+  if(contentReturnMode === "resume"){
+    btn.textContent = "Resume the review";
+    btn.onclick = resumeQuiz;
+  } else {
+    btn.textContent = "Start the review";
+    btn.onclick = beginQuiz;
+  }
+}
+function toggleSection(elementId, hasContent, renderFn){
+  const el = document.getElementById(elementId);
+  if(hasContent){
+    el.style.display = "block";
+    renderFn();
+  } else {
+    el.style.display = "none";
+  }
+}
+function beginQuiz(){
+  session.qIndex = 0;
+  session.answers = {};
+  showScreen("review");
+  renderQuestion();
+}
+function resumeQuiz(){
+  showScreen("review");
+  renderQuestion();
+}
+
+/* ---------------- Review flow ---------------- */
+function currentLesson(){ return LESSONS.find(l=>l.id===session.lessonId); }
+function renderQuestion(){
+  document.getElementById("whoAmIReview").textContent = session.student + " — " + session.cls + " · LRN " + session.lrn;
+  const lesson = currentLesson();
+  const q = lesson.questions[session.qIndex];
+  document.getElementById("progressFill").style.width = Math.round((session.qIndex/lesson.questions.length)*100) + "%";
+  document.getElementById("qCount").textContent = `Question ${session.qIndex+1} of ${lesson.questions.length} — ${lesson.title}`;
+  document.getElementById("qPrompt").textContent = q.prompt;
+
+  const optWrap = document.getElementById("qOptions");
+  const idWrap = document.getElementById("qIdentification");
+  if(q.type === "mc"){
+    idWrap.style.display = "none";
+    optWrap.style.display = "block";
+    optWrap.innerHTML = q.options.map((opt, idx)=>`
+      <button type="button" class="option ${session.answers[q.id]===idx ? "selected" : ""}" onclick="selectOption('${q.id}', ${idx})">${escapeHtml(opt)}</button>
+    `).join("");
+  } else {
+    optWrap.style.display = "none";
+    idWrap.style.display = "block";
+    const input = document.getElementById("idAnswer");
+    input.value = session.answers[q.id] !== undefined ? session.answers[q.id] : "";
+  }
+  document.getElementById("prevBtn").disabled = session.qIndex === 0;
+  document.getElementById("nextBtn").textContent = session.qIndex === lesson.questions.length - 1 ? "Submit" : "Next";
+}
+function selectOption(qId, idx){
+  session.answers[qId] = idx;
+  renderQuestion();
+}
+function prevQuestion(){
+  const q = currentLesson().questions[session.qIndex];
+  if(q.type === "id") session.answers[q.id] = document.getElementById("idAnswer").value.trim();
+  session.qIndex = Math.max(0, session.qIndex - 1);
+  renderQuestion();
+}
+function nextQuestion(){
+  const lesson = currentLesson();
+  const q = lesson.questions[session.qIndex];
+  if(q.type === "id") session.answers[q.id] = document.getElementById("idAnswer").value.trim();
+  if(session.qIndex < lesson.questions.length - 1){
+    session.qIndex++;
+    renderQuestion();
+  } else {
+    submitReview();
+  }
+}
+
+/* ---------------- Scoring ---------------- */
+function submitReview(){
+  const lesson = currentLesson();
+  let correctCount = 0;
+  const tagTotals = {};
+  const itemResults = lesson.questions.map(q=>{
+    let isCorrect = false;
+    let studentAnswerText = "";
+    if(q.type === "mc"){
+      const chosen = session.answers[q.id];
+      isCorrect = chosen === q.correctIndex;
+      studentAnswerText = chosen !== undefined ? q.options[chosen] : "(no answer)";
+    } else {
+      const raw = (session.answers[q.id] || "").trim().toLowerCase();
+      isCorrect = q.accepted.some(a => a.trim().toLowerCase() === raw);
+      studentAnswerText = session.answers[q.id] || "(no answer)";
+    }
+    if(isCorrect) correctCount++;
+    tagTotals[q.tag] = tagTotals[q.tag] || { correct:0, total:0 };
+    tagTotals[q.tag].total++;
+    if(isCorrect) tagTotals[q.tag].correct++;
+    return { prompt:q.prompt, studentAnswerText, correctText: q.type==="mc" ? q.options[q.correctIndex] : q.accepted[0], isCorrect, explanation:q.explanation };
+  });
+
+  const max = lesson.questions.length;
+  const pct = Math.round((correctCount/max)*100);
+  let recommendation = "On Track";
+  if(pct >= 85) recommendation = "Ready for Advancement";
+  else if(pct < 60) recommendation = "Needs Intervention";
+
+  let weakestTag = "";
+  let weakestRate = 1.01;
+  const tagBreakdownParts = [];
+  Object.keys(tagTotals).forEach(tag=>{
+    const t = tagTotals[tag];
+    const rate = t.correct / t.total;
+    tagBreakdownParts.push(`${tag}: ${t.correct}/${t.total}`);
+    if(rate < weakestRate){ weakestRate = rate; weakestTag = tag; }
+  });
+  const tagBreakdown = tagBreakdownParts.join("; ");
+
+  const attemptDate = new Date().toISOString();
+  state.history.push({
+    id: uid(), date: attemptDate, lessonId: lesson.id, lessonTitle: lesson.title,
+    lrn: session.lrn, correct: correctCount, max, pct, recommendation
+  });
+  saveState();
+
+  renderResults(lesson, correctCount, max, pct, recommendation, itemResults);
+
+  queueForSync({
+    row: [
+      attemptDate, session.student, session.cls, lesson.title, lesson.learningCompetency,
+      correctCount, max, pct, weakestTag, tagBreakdown, recommendation, session.lrn
+    ]
+  });
+  showScreen("results");
+}
+function lessonAttemptsFor(lessonId, lrn){
+  return state.history
+    .filter(h => h.lessonId === lessonId && h.lrn === lrn)
+    .sort((a,b) => new Date(b.date) - new Date(a.date));
+}
+function scoreClass(pct){ return pct>=85 ? "pass" : pct>=60 ? "mid" : "low"; }
+function renderLessonHistory(lessonId, lrn){
+  const section = document.getElementById("lessonHistorySection");
+  const list = document.getElementById("lessonHistoryList");
+  const attempts = lessonAttemptsFor(lessonId, lrn);
+  if(attempts.length === 0){ section.style.display = "none"; return; }
+  section.style.display = "block";
+  list.innerHTML = attempts.map((h, i) => {
+    const d = new Date(h.date).toLocaleString(undefined, {
+      year:"numeric", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"
+    });
+    return `
+    <div class="history-row ${i===0 ? "latest" : ""}">
+      <div class="history-date">${escapeHtml(d)}${i===0 ? '<span class="latest-tag">LATEST</span>' : ""}</div>
+      <div class="history-score ${scoreClass(h.pct)}">${h.correct}/${h.max} · ${h.pct}%</div>
+    </div>`;
+  }).join("");
+}
+function friendlyVerdict(recommendation){
+  if(recommendation === "Ready for Advancement") return { emoji:"🌟", text:"Excellent work! You're ready to move on." };
+  if(recommendation === "Needs Intervention") return { emoji:"💪", text:"Good try! Let's practice this a bit more." };
+  return { emoji:"👍", text:"Nice job — keep it up!" };
+}
+function badgeTier(pct){
+  if(pct >= 85) return { tier:"gold", label:"Mastery Badge", color:"#C99A2E", emoji:"🏅" };
+  if(pct >= 60) return { tier:"silver", label:"Completion Badge", color:"#5B7A8C", emoji:"✅" };
+  return null;
+}
+let lastResult = null;
+function renderResults(lesson, correct, max, pct, recommendation, itemResults){
+  const banner = document.getElementById("resultBanner");
+  banner.className = "stamp-banner " + (pct>=85?"pass":pct>=60?"mid":"low");
+  const friendly = friendlyVerdict(recommendation);
+  const dateStr = new Date().toLocaleString(undefined, {
+    year:"numeric", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"
+  });
+  document.getElementById("resultStudentLine").innerHTML =
+    `${escapeHtml(session.student)} <span class="cls">· ${escapeHtml(session.cls)} · LRN ${escapeHtml(session.lrn)}</span>`;
+  document.getElementById("resultEmoji").textContent = friendly.emoji;
+  document.getElementById("resultPct").textContent = pct + "%";
+  document.getElementById("resultVerdict").textContent = friendly.text;
+  document.getElementById("resultLessonLine").textContent = lesson.title;
+  document.getElementById("resultDateLine").textContent = dateStr;
+  document.getElementById("resultLessonTitle").textContent = lesson.title;
+  document.getElementById("resultScoreLine").textContent = correct + " / " + max + " correct";
+  document.getElementById("resultBreakdown").innerHTML =
+    `<div class="hint">Learning competency: ${escapeHtml(lesson.learningCompetency)}</div>`;
+  renderLessonHistory(lesson.id, session.lrn);
+  document.getElementById("reviewList").innerHTML = itemResults.map(r=>`
+    <div class="review-item">
+      <div class="q">${escapeHtml(r.prompt)}</div>
+      <div class="a ${r.isCorrect ? "correct" : "incorrect"}">Your answer: ${escapeHtml(r.studentAnswerText)} ${r.isCorrect ? "✓" : "✗"}</div>
+      ${!r.isCorrect ? `<div class="a">Correct answer: ${escapeHtml(r.correctText)}</div>` : ""}
+    </div>
+  `).join("");
+
+  const badge = badgeTier(pct);
+  const badgeSection = document.getElementById("badgeSection");
+  if(badge){
+    badgeSection.style.display = "block";
+    document.getElementById("badgeVisual").innerHTML =
+      `<span style="font-size:22px;">${badge.emoji}</span> <strong style="color:${badge.color};">${badge.label} earned!</strong>`;
+  } else {
+    badgeSection.style.display = "none";
+  }
+  lastResult = {
+    student: session.student, lrn: session.lrn, cls: session.cls, lessonTitle: lesson.title,
+    competency: lesson.learningCompetency, correct, max, pct, dateStr, badge
+  };
+}
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = text.split(" ");
+  let line = "";
+  const lines = [];
+  for(let i=0;i<words.length;i++){
+    const test = line + words[i] + " ";
+    if(ctx.measureText(test).width > maxWidth && i > 0){
+      lines.push(line.trim());
+      line = words[i] + " ";
+    } else {
+      line = test;
+    }
+  }
+  lines.push(line.trim());
+  lines.forEach((l,i)=> ctx.fillText(l, x, y + i*lineHeight));
+  return lines.length;
+}
+function downloadCertificate(){
+  if(!lastResult) return;
+  const r = lastResult;
+  const accent = r.badge ? r.badge.color : "#00B050";
+  const canvas = document.createElement("canvas");
+  canvas.width = 1000; canvas.height = 700;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#FFF9F0";
+  ctx.fillRect(0, 0, 1000, 700);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(20, 20, 960, 660);
+  ctx.lineWidth = 2;
+  ctx.strokeRect(36, 36, 928, 628);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#4A3B32";
+  ctx.font = "bold 17px Arial";
+  ctx.fillText("ALTERNATIVE LEARNING SYSTEM", 500, 92);
+  ctx.font = "13px Arial";
+  ctx.fillStyle = "#7A6555";
+  ctx.fillText("City Schools Division of Dasmariñas", 500, 114);
+
+  ctx.font = "bold 34px Georgia, serif";
+  ctx.fillStyle = accent;
+  ctx.fillText(r.badge ? r.badge.label : "Certificate of Completion", 500, 190);
+
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#4A3B32";
+  ctx.fillText("This certifies that", 500, 238);
+
+  ctx.font = "bold 38px Georgia, serif";
+  ctx.fillText(r.student, 500, 296);
+
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#7A6555";
+  ctx.fillText(`${r.cls} · LRN ${r.lrn}`, 500, 326);
+
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#4A3B32";
+  ctx.fillText("has completed the review for", 500, 376);
+
+  ctx.font = "bold 22px Arial";
+  ctx.fillText(r.lessonTitle, 500, 410);
+
+  ctx.font = "13px Arial";
+  ctx.fillStyle = "#7A6555";
+  wrapCanvasText(ctx, r.competency, 500, 440, 780, 18);
+
+  ctx.font = "bold 28px Arial";
+  ctx.fillStyle = accent;
+  ctx.fillText(`Score: ${r.correct}/${r.max} (${r.pct}%)`, 500, 530);
+
+  ctx.font = "13px Arial";
+  ctx.fillStyle = "#7A6555";
+  ctx.fillText(r.dateStr, 500, 570);
+
+  const safeName = r.student.replace(/[^a-z0-9]+/gi, "_");
+  const dataUrl = canvas.toDataURL("image/png");
+
+  try{
+    const link = document.createElement("a");
+    link.download = `certificate-${safeName}.png`;
+    link.href = dataUrl;
+    link.rel = "noopener";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Certificate downloading — check your device's Downloads");
+  }catch(err){
+    // Fallback for browsers/previews that block programmatic downloads:
+    // open the image directly so it can be long-pressed/saved manually.
+    const win = window.open();
+    if(win){
+      win.document.write(`<title>Certificate</title><img src="${dataUrl}" style="max-width:100%;">`);
+      showToast("Opened in a new tab — save the image from there");
+    } else {
+      showToast("Couldn't open the certificate — try opening this file directly in a browser");
+    }
+  }
+}
+
+/* ---------------- Sync ---------------- */
+function queueForSync(item){
+  const record = { id: uid(), ...item };
+  state.syncQueue.push(record);
+  saveState();
+  updateQueueStatus();
+  syncNewResult(record);
+}
+async function syncNewResult(record){
+  if(!state.settings.sheetsUrl){
+    showToast("Result saved on this device — sync isn't set up yet");
+    return;
+  }
+  if(!navigator.onLine){
+    lastSyncError = "This phone is offline.";
+    showToast("You're offline — result saved, will sync automatically once online");
+    updateQueueStatus();
+    return;
+  }
+  const ok = await sendToSheets(record, true);
+  updateQueueStatus();
+  if(ok){
+    state.syncQueue = state.syncQueue.filter(r => r.id !== record.id);
+    saveState();
+    updateQueueStatus();
+  }
+}
+function updateQueueStatus(){
+  const n = state.syncQueue.length;
+  const dot = document.getElementById("syncDot");
+  const pillText = document.getElementById("syncPillText");
+  if(!state.settings.sheetsUrl){ dot.className = "dot off"; pillText.textContent = "Not connected"; }
+  else if(n === 0){ dot.className = "dot ok"; pillText.textContent = "All results synced"; }
+  else { dot.className = "dot pending"; pillText.textContent = n + " result(s) pending sync"; }
+
+  const pl = document.getElementById("pendingLine");
+  if(pl){
+    pl.style.display = n ? "block" : "none";
+    document.getElementById("pendingText").textContent = n + " saved result" + (n===1?"":"s") + " waiting to be sent to your teacher";
+  }
+  const st = document.getElementById("syncStatusText");
+  if(st){
+    const det = document.getElementById("syncStatusDetail");
+    const btn = document.getElementById("syncRetryBtn");
+    if(n === 0){
+      st.textContent = lastSyncUnconfirmed ? "📤 Sent to your teacher (not confirmed)" : "✅ Sent to your teacher";
+      det.textContent = lastSyncUnconfirmed ? "This viewer can't show the sheet's reply. For a confirmed ✅, open this file in Chrome instead of from Messenger/Facebook." : "";
+      btn.style.display = "none";
+    } else {
+      st.textContent = "⏳ Saved on this phone — not yet sent to your teacher";
+      det.textContent = lastSyncError || "Tap the button to try again.";
+      btn.style.display = "inline-block";
+    }
+  }
+}
+async function retrySyncFromResults(){
+  showToast("Sending...");
+  await syncNow();
+  updateQueueStatus();
+}
+function saveSheetsUrl(){
+  state.settings.sheetsUrl = document.getElementById("sheetsUrl").value.trim();
+  state.settings.syncKey = document.getElementById("sheetsKey").value.trim();
+  saveState();
+  updateQueueStatus();
+  renderStudentConnectStatus();
+  showToast("Sync settings saved");
+}
+
+/* ---------------- Student-facing connect box ----------------
+   Lets a student paste just the spreadsheet link the teacher sends
+   separately (e.g. via Messenger), without opening the full Teacher
+   settings screen. The Sync Key stays whatever is already baked into
+   this file / already saved on the device. */
+/* ---------------- Connection check (honest status) ---------------- */
+let connVerified = null;   // null = not verified, true = sheet answered, false = problem
+let connNote = "";
+const ACCESS_MSG = "Google answered, but this browser couldn't read the reply. Most often the deployment's 'Who has access' isn't set to Anyone, or this link is from an old/deleted deployment. Open the link in a new browser tab: you should see {\"status\":\"ok\"...}. If you see a Google sign-in page, redeploy with Who has access = Anyone.";
+async function diagnoseConnection(url, key){
+  url = (url || "").trim();
+  if(!/^https:\/\/script\.google\.com\//i.test(url))
+    return { ok:false, message:"That isn't a Google Apps Script link. It must start with https://script.google.com/macros/s/ and end with /exec." };
+  if(/\/dev(\?.*)?$/i.test(url))
+    return { ok:false, message:"That's the test link (/dev). Use the Web app URL ending in /exec from Deploy → New deployment." };
+  if(!/\/exec(\?.*)?$/i.test(url))
+    return { ok:false, message:"The link looks incomplete — it should end with /exec. Copy the whole Web app URL again." };
+  if(!navigator.onLine) return { ok:false, message:"This device is offline right now." };
+  const probe = url + (url.includes("?") ? "&" : "?") + "key=" + encodeURIComponent(key || "");
+  try{
+    const res = await fetch(probe, { method:"GET" });
+    let data = null; try{ data = await res.json(); }catch(e){}
+    if(data && data.status === "ok"){
+      if(data.keyValid === false) return { ok:false, message:"Reached the sheet, but the Sync Key doesn't match the one in the script." };
+      return { ok:true, message:"Connected ✓ — the sheet answered." };
+    }
+    return { ok:false, message:ACCESS_MSG };
+  }catch(err){
+    try{
+      await fetch(probe, { method:"GET", mode:"no-cors" });
+      if(location.protocol === "content:")
+        return { ok:null, message:"The link is reachable, but this viewer (file opened from Messenger/Facebook) can't read the reply, so it can't be verified. Results are still sent." };
+      return { ok:false, message:ACCESS_MSG };
+    }catch(err2){
+      return { ok:false, message:"Can't reach Google at all. If your internet is working, this viewer is blocking the file from going online — open it in Chrome instead (tap ⋮ → Open in browser, or save the file to Downloads and open it from Chrome). Otherwise check the link was copied completely." };
+    }
+  }
+}
+function renderStudentConnectStatus(){
+  const dot = document.getElementById("studentConnectDot");
+  const text = document.getElementById("studentConnectStatusText");
+  const toggle = document.getElementById("studentConnectToggle");
+  const wrap = document.getElementById("studentConnectFieldWrap");
+  if(!dot) return;
+  if(state.settings.sheetsUrl){
+    if(connVerified === true){ dot.className = "dot ok"; text.textContent = "Connected ✓"; }
+    else if(connVerified === false){ dot.className = "dot off"; text.textContent = "Can't reach your teacher's sheet right now — your results are saved and will send later"; }
+    else { dot.className = "dot pending"; text.textContent = connNote || "Checking connection…"; }
+    toggle.style.display = "inline";
+    wrap.style.display = "none";
+  } else {
+    dot.className = "dot off";
+    text.textContent = "Not connected yet";
+    toggle.style.display = "none";
+    wrap.style.display = "block";
+  }
+}
+function toggleStudentConnectField(){
+  const wrap = document.getElementById("studentConnectFieldWrap");
+  const input = document.getElementById("studentConnectInput");
+  const isHidden = wrap.style.display === "none";
+  wrap.style.display = isHidden ? "block" : "none";
+  if(isHidden) input.value = state.settings.sheetsUrl || "";
+}
+async function connectFromPastedLink(){
+  const val = document.getElementById("studentConnectInput").value.trim();
+  if(!val){ showToast("Paste the link your teacher sent you first"); return; }
+  if(!/^https:\/\//i.test(val)){ showToast("That doesn't look like a link — ask your teacher to resend it"); return; }
+  state.settings.sheetsUrl = val;
+  if(!state.settings.syncKey) state.settings.syncKey = DEFAULT_SYNC_KEY;
+  saveState();
+  connVerified = null; connNote = "";
+  updateQueueStatus();
+  renderStudentConnectStatus();
+  showToast("Connecting...");
+  const r = await diagnoseConnection(val, state.settings.syncKey);
+  connVerified = r.ok; connNote = r.ok === null ? "Link saved (this viewer can't verify it, results are still sent)" : "";
+  renderStudentConnectStatus();
+  showToast(r.ok ? "Connected ✓ — syncing your saved results now" : r.message);
+  if(r.ok !== false) trySyncQuiet();
+}
+let brandTapCount = 0, brandTapTimer = null;
+function handleBrandTap(){
+  brandTapCount++;
+  clearTimeout(brandTapTimer);
+  brandTapTimer = setTimeout(()=>{ brandTapCount = 0; }, 3000);
+  if(brandTapCount >= 5){
+    brandTapCount = 0;
+    showScreen("settings");
+  }
+}
+async function testConnection(){
+  const url = state.settings.sheetsUrl;
+  const box = document.getElementById("syncDiag");
+  if(!url){ showToast("Save a Web App URL first"); return; }
+  if(box) box.textContent = "Testing connection...";
+  const r = await diagnoseConnection(url, state.settings.syncKey || "");
+  connVerified = r.ok; connNote = "";
+  if(box){ box.textContent = r.message; box.style.color = r.ok ? "var(--green)" : "var(--red)"; box.style.fontWeight = "700"; }
+  renderStudentConnectStatus(); updateQueueStatus();
+  showToast(r.ok ? "Connected ✓" : "Not connected — see the message under Test connection");
+}
+async function syncNow(){
+  if(!state.settings.sheetsUrl){ showToast("Save a Web App URL first"); return; }
+  if(state.syncQueue.length === 0){ showToast("Nothing to sync"); return; }
+  const remaining = [];
+  for(const item of state.syncQueue){
+    const ok = await sendToSheets(item, false);
+    if(!ok) remaining.push(item);
+  }
+  state.syncQueue = remaining;
+  saveState();
+  updateQueueStatus();
+  showToast(remaining.length===0 ? "All synced ✓" : remaining.length + " still pending");
+}
+async function trySyncQuiet(){
+  if(!state.settings.sheetsUrl || !navigator.onLine) return;
+  const remaining = [];
+  for(const item of state.syncQueue){
+    const ok = await sendToSheets(item, false);
+    if(!ok) remaining.push(item);
+  }
+  state.syncQueue = remaining;
+  saveState();
+  updateQueueStatus();
+}
+async function sendToSheets(item, verbose){
+  try{
+    const res = await fetch(state.settings.sheetsUrl, {
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify({ row: item.row, id: item.id, key: state.settings.syncKey })
+    });
+    const data = await res.json().catch(()=>null);
+    if(data && data.status === "error"){
+      lastSyncError = "Rejected by the sheet: " + (data.message || "check the Sync Key");
+      showToast("Sync rejected: " + (data.message || "check your Sync Key"));
+      return false;
+    }
+    if(data && data.status === "ok"){
+      lastSyncError = "";
+      connVerified = true;
+      if(verbose) showToast("Result synced to your teacher's records ✓");
+      return true;
+    }
+    lastSyncError = "The link answered, but not with the expected reply (HTTP " + res.status + "). The Web App link may be wrong, or not deployed to 'Anyone'.";
+    if(verbose) showToast("Unexpected response from the server — result saved locally, will retry automatically");
+    return false;
+  }catch(err){
+    // Some viewers (e.g. a file opened straight from Messenger/Facebook, address
+    // starts with content://) block reading Google's reply. The request itself can
+    // still be delivered with a no-cors send; the sheet ignores repeats by id, so
+    // it is safe. We can't read a reply, so this counts as "sent, unconfirmed".
+    try{
+      await fetch(state.settings.sheetsUrl, {
+        method:"POST", mode:"no-cors",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body: JSON.stringify({ row: item.row, id: item.id, key: state.settings.syncKey })
+      });
+      lastSyncError = "";
+      lastSyncUnconfirmed = true;
+      if(verbose) showToast("Sent — this viewer can't confirm delivery. Open the file in Chrome for a confirmation.");
+      return true;
+    }catch(err2){}
+    lastSyncError = "Could not reach the sheet (" + err.message + "). Check internet, or open this file in Chrome/Safari instead of Messenger.";
+    if(verbose) showToast("Could not reach the server (" + err.message + ") — result saved locally, will retry automatically");
+    return false;
+  }
+}
+function copyScript(){
+  const text = document.getElementById("gscript").textContent;
+  navigator.clipboard.writeText(text).then(()=> showToast("Script copied")).catch(()=> showToast("Copy manually — select the text"));
+}
+
+/* ---------------- Utils ---------------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+}
+
+/* ---------------- Init ---------------- */
+document.getElementById("sheetsUrl").value = state.settings.sheetsUrl || "";
+document.getElementById("sheetsKey").value = state.settings.syncKey || "";
+updateQueueStatus();
+renderStudentConnectStatus();
+(async function verifyOnLoad(){
+  if(!state.settings.sheetsUrl) return;
+  const r = await diagnoseConnection(state.settings.sheetsUrl, state.settings.syncKey);
+  connVerified = r.ok; connNote = r.ok === null ? "Link saved (this viewer can't verify it, results are still sent)" : "";
+  renderStudentConnectStatus(); updateQueueStatus();
+  if(r.ok !== false && state.syncQueue.length) trySyncQuiet();   // auto-send results saved earlier
+})();
+window.addEventListener("online", trySyncQuiet);
+if(location.protocol === "content:" || /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|; wv\)/i.test(navigator.userAgent)){
+  const w = document.getElementById("inAppWarn"); if(w) w.style.display = "block";
+}
+</script>
+</body>
+</html>
